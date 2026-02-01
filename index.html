@@ -4,17 +4,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stock Recording</title>
-    <link rel="stylesheet" href="style.css">
+    <title>O,OOO,OOO,OOO</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        /* Project Specific Overrides */
+        :root {
+            --primary-color: #2563EB;
+            --bg-color: #F3F4F6;
+            --card-bg: #FFFFFF;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: #1F2937;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .app-shell {
+            max-width: 480px;
+            margin: 0 auto;
+            background: #fff;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navigation */
+        .top-nav-container {
+            display: flex;
+            align-items: center;
+            height: 60px;
+            padding: 0 16px;
+            background: #2563EB;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        /* Dashboard Card */
+        .summary-card {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            margin: 16px;
+            padding: 24px;
+            border-radius: 20px;
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Stock List */
+        .transaction-list {
+            flex: 1;
+            padding: 0 16px 80px 16px;
+            /* Bottom padding for FAB */
+            overflow-y: auto;
+        }
+
         .stock-card {
             background: white;
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #E5E7EB;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -27,9 +81,11 @@
         }
 
         .stock-symbol {
+            font-weight: 700;
             font-size: 16px;
-            font-weight: 600;
-            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .stock-date {
@@ -40,48 +96,114 @@
         .stock-amount {
             font-weight: 700;
             font-size: 16px;
-            text-align: right;
         }
 
         .type-badge {
-            font-size: 11px;
+            font-size: 10px;
             padding: 2px 6px;
             border-radius: 4px;
-            display: inline-block;
-            margin-left: 6px;
+            font-weight: 500;
         }
 
         .type-buy {
             background: #fee2e2;
-            color: #ef4444;
+            color: #991b1b;
+        }
+
+        /* Red for Buy/Expense aspect? Or Standard Red/Green? TW stock: Red=Up. */
+        /* Let's use Buy = Red (Cost), Sell = Green (Income) or vice versa? 
+           Actually, let's keep it neutral colored or simpler.
+           Buy = Expense (Out)
+           Sell = Income (In)
+        */
+        .type-buy {
+            background: #FEF2F2;
+            color: #DC2626;
         }
 
         .type-sell {
-            background: #dcfce7;
-            color: #166534;
+            background: #ECFDF5;
+            color: #059669;
         }
 
-        /* Fab Button */
-        .fab-add {
-            position: absolute;
-            bottom: 24px;
-            right: 24px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: var(--color-brand-600);
-            color: white;
+        /* Main Tabs */
+        .main-tabs {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-            cursor: pointer;
-            z-index: 100;
-            transition: transform 0.2s;
+            background: white;
+            border-bottom: 1px solid #E5E7EB;
         }
 
-        .fab-add:active {
-            transform: scale(0.95);
+        .main-tab-item {
+            flex: 1;
+            text-align: center;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #6B7280;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .main-tab-item.active {
+            color: #2563EB;
+            border-bottom-color: #2563EB;
+        }
+
+        /* Form New Styles */
+        .type-tab {
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .type-tab input {
+            display: none;
+        }
+
+        .type-tab:has(input:checked) {
+            background: #EFF6FF;
+            color: #2563EB;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .inp-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .inp-field {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            font-size: 16px;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+        .inp-field:focus {
+            border-color: #2563EB;
+            outline: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .form-group-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
     </style>
 </head>
@@ -94,58 +216,160 @@
             <div style="flex:1"></div>
             <!-- Google Sign In Button Container -->
             <div id="g_id_signin"></div>
-            <!-- User Info (Hidden by default) -->
-            <div id="userInfo" style="display:none; align-items:center; padding-right:16px;">
+            <!-- User Profile (Hidden initially) -->
+            <div id="userInfo" style="display:none; align-items:center;">
                 <img id="userAvatar" src="" style="width:32px; height:32px; border-radius:50%; border:2px solid white;">
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Dashboard View -->
-            <div id="viewDashboard" class="page-view" style="padding: 16px;">
-                <!-- Summary Card -->
-                <div
-                    style="background: linear-gradient(135deg, #3B82F6, #2563EB); border-radius: 16px; padding: 20px; color: white; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(37,99,235,0.2);">
-                    <div style="font-size: 14px; opacity: 0.9;">總投資金額</div>
-                    <div style="font-size: 32px; font-weight: 700; margin-top: 4px;">$ 0</div>
-                    <div style="margin-top: 12px; display: flex; gap: 16px;">
-                        <div>
-                            <div style="font-size: 12px; opacity: 0.8;">庫存市值</div>
-                            <div style="font-weight: 600;">$ 0</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 12px; opacity: 0.8;">損益</div>
-                            <div style="font-weight: 600;">$ 0</div>
-                        </div>
-                    </div>
-                </div>
+        <!-- Main Tabs -->
+        <div class="main-tabs">
+            <div id="tabNavAdd" class="main-tab-item">新增紀錄</div>
+            <div id="tabNavRecent" class="main-tab-item active">近期紀錄</div>
+        </div>
 
-                <div style="font-size: 18px; font-weight: 600; color: #111; margin-bottom: 12px;">近期交易</div>
+        <!-- Dashboard View -->
+        <div id="viewDashboard" class="page-view">
 
-                <div id="transactionList">
-                    <div class="hint" style="text-align:center; padding: 40px; color: #9CA3AF;">
-                        請先登入以檢視資料
-                    </div>
-                </div>
-            </div>
-
-            <!-- Form View (Hidden) -->
-            <div id="viewForm" class="page-view hidden" style="padding: 16px;">
-                <!-- To be implemented -->
+            <!-- List -->
+            <div id="transactionList" class="transaction-list" style="padding-top: 16px;">
+                <!-- Items will be injected here -->
+                <div class="hint" style="text-align:center; padding: 40px; color: #9CA3AF;">請先登入以查看資料</div>
             </div>
         </div>
 
-        <!-- FAB for Add -->
-        <div id="btnAddStock" class="fab-add">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
+        <!-- Form View (Hidden) -->
+        <div id="viewForm" class="page-view hidden" style="padding: 16px;">
+            <div style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">新增紀錄</div>
+
+            <!-- Type Tabs -->
+            <div class="form-group-stack">
+                <div
+                    style="background:white; padding:4px; border-radius:8px; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:4px; border:1px solid #E5E7EB;">
+                    <label class="type-tab" id="tabBuy">
+                        <input type="radio" name="stockType" value="buy" checked onchange="toggleFormType()">
+                        <span>買入</span>
+                    </label>
+                    <label class="type-tab" id="tabSell">
+                        <input type="radio" name="stockType" value="sell" onchange="toggleFormType()">
+                        <span>賣出</span>
+                    </label>
+                    <label class="type-tab" id="tabStockDiv">
+                        <input type="radio" name="stockType" value="stock_div" onchange="toggleFormType()">
+                        <span>配股</span>
+                    </label>
+                    <label class="type-tab" id="tabCashDiv">
+                        <input type="radio" name="stockType" value="cash_div" onchange="toggleFormType()">
+                        <span>配息</span>
+                    </label>
+                </div>
+
+                <!-- Common Fields -->
+                <!-- Date & Owner -->
+                <div style="display:flex; gap:12px;">
+                    <div style="flex:1">
+                        <label class="inp-label">日期</label>
+                        <input type="date" id="inpDate" class="inp-field">
+                    </div>
+                    <div style="width:80px;">
+                        <label class="inp-label">Owner</label>
+                        <select id="inpOwner" class="inp-field">
+                            <option value="J">J</option>
+                            <option value="D">D</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Broker -->
+                <div>
+                    <label class="inp-label">券商 (可輸入新值)</label>
+                    <input type="text" id="inpBroker" list="listBrokers" class="inp-field" placeholder="選擇或輸入券商">
+                    <datalist id="listBrokers"></datalist>
+                </div>
+
+                <!-- Symbol & Name -->
+                <div style="display:flex; gap:12px;">
+                    <div style="width:100px;">
+                        <label class="inp-label">代號</label>
+                        <input type="text" id="inpSymbol" list="listSymbols" class="inp-field" placeholder="代號">
+                        <datalist id="listSymbols"></datalist>
+                    </div>
+                    <div style="flex:1">
+                        <label class="inp-label">名稱</label>
+                        <input type="text" id="inpName" list="listNames" class="inp-field" placeholder="名稱">
+                        <datalist id="listNames"></datalist>
+                    </div>
+                </div>
+
+                <!-- Currency (Common) -->
+                <div id="divCurrency">
+                    <label class="inp-label">幣別</label>
+                    <input type="text" id="inpCurrencyInput" list="listCurrencies" class="inp-field" value="TWD">
+                    <datalist id="listCurrencies">
+                        <option value="TWD">
+                        <option value="USD">
+                        <option value="JPY">
+                    </datalist>
+                </div>
+
+                <!-- Dynamic Fields -->
+
+                <!-- Buy Specific -->
+                <div id="fieldsBuy" class="dynamic-group">
+                    <div style="display:flex; gap:12px;">
+                        <div style="flex:1">
+                            <label class="inp-label">買進股數</label>
+                            <input type="number" id="inpBuyQty" class="inp-field" placeholder="0">
+                        </div>
+                        <div style="flex:1.5">
+                            <label class="inp-label">購買金額</label>
+                            <input type="number" id="inpBuyAmt" class="inp-field" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sell Specific -->
+                <div id="fieldsSell" class="dynamic-group hidden">
+                    <div style="display:flex; gap:12px;">
+                        <div style="flex:1">
+                            <label class="inp-label">賣出股數</label>
+                            <input type="number" id="inpSellQty" class="inp-field" placeholder="0">
+                        </div>
+                        <div style="flex:1.5">
+                            <label class="inp-label">賣出金額</label>
+                            <input type="number" id="inpSellAmt" class="inp-field" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Div Specific -->
+                <div id="fieldsStockDiv" class="dynamic-group hidden">
+                    <div>
+                        <label class="inp-label">配股數量</label>
+                        <input type="number" id="inpStockDivQty" class="inp-field" placeholder="0">
+                    </div>
+                </div>
+
+                <!-- Cash Div Specific -->
+                <div id="fieldsCashDiv" class="dynamic-group hidden">
+                    <div>
+                        <label class="inp-label">配息金額</label>
+                        <input type="number" id="inpCashDivAmt" class="inp-field" placeholder="0">
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div style="display:flex; gap:12px; margin-top:20px; padding-bottom:40px;">
+                    <button id="btnCancel"
+                        style="flex:1; padding:12px; border-radius:12px; border:1px solid #E5E7EB; background:white; font-weight:600;">取消</button>
+                    <button id="btnSave"
+                        style="flex:1; padding:12px; border-radius:12px; border:none; background:#2563EB; color:white; font-weight:600;">儲存</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script type="module" src="app.js"></script>
+    <script src="app.js"></script>
 </body>
 
 </html>

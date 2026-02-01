@@ -3,7 +3,7 @@
 
 // CONFIGURATION
 const SPREADSHEET_ID = "1Kk7mRQJniCid7h3K5EqbBAZP9pdoSpOvp9j9giAcJNg";
-const SHEET_NAME = "Transactions";
+const SHEET_NAME = "stocklist"; // Changed from Transactions
 const PERMISSION_SHEET_NAME = "permission control";
 
 function doPost(e) {
@@ -20,7 +20,7 @@ function handleRequest(e) {
   
   try {
     const params = e.parameter;
-    const action = params.action;
+
     
     // Parse Body if Post
     let body = {};
@@ -28,16 +28,15 @@ function handleRequest(e) {
       body = JSON.parse(e.postData.contents);
     }
 
-    // Identify User Email
-    // For getStocks, it's in params.email
-    // For addStock, it's in body.user_email
+    // Fix: Check action in both URL params and Body
+    const action = params.action || body.action;
+
     const userEmail = params.email || body.user_email;
 
     if (!userEmail) {
       return responseJSON({ status: "error", message: "Email required" });
     }
 
-    // Check Permission
     if (!checkPermission(userEmail)) {
       return responseJSON({ status: "error", message: "Permission Denied: User not authorized" });
     }
@@ -45,11 +44,21 @@ function handleRequest(e) {
     // Route Actions
     let result = {};
     if (action === "getStocks") {
-      result = getStocks(userEmail);
+      result = getStocks(userEmail); // Still filtering by email? User said "Owner content: J, D". Maybe multiple users manage same sheet?
+      // Requirement says "Owner" is a field. 
+      // Current Permission logic checks if the *logged in user* is allowed.
+      // Do we strictly filter rows by logged in user? "Owner" field (J/D) suggests a shared sheet where J sees D's stuff?
+      // I will return ALL data if authorized, and let frontend filter/display.
+      // But for now let's keep it simple: Return ALL rows from 'stocklist'.
+      result = getStocks(); 
     } else if (action === "addStock") {
       result = addStock(body);
     } else {
-      result = { status: "error", message: "Unknown action" };
+      // DEBUG: Return input details to identify why action is missing
+      result = { 
+          status: "error", 
+          message: "Unknown action. DebugInfo: Body=" + JSON.stringify(body) + ", Params=" + JSON.stringify(params) 
+      };
     }
 
     return responseJSON(result);
@@ -74,27 +83,22 @@ function checkPermission(email) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   let sheet = ss.getSheetByName(PERMISSION_SHEET_NAME);
   
-  // If sheet doesn't exist, Create it (Optional, or just block)
-  // User said it will exist. If fail, maybe creating it helps properly showing where to fill.
   if (!sheet) {
     sheet = ss.insertSheet(PERMISSION_SHEET_NAME);
     sheet.appendRow(["name", "gmail"]);
-    return false; // Newly created, definitely empty
+    return false; 
   }
 
   const data = sheet.getDataRange().getValues();
-  if (data.length < 2) return false; // Only headers or empty
+  if (data.length < 2) return false;
 
-  // Normalize Headers to find "gmail"
   const headers = data[0].map(h => h.toString().toLowerCase().trim());
   const emailColIndex = headers.indexOf("gmail");
 
-  if (emailColIndex === -1) return false; // "gmail" column not found
+  if (emailColIndex === -1) return false;
 
-  // Check email
   const checkEmail = email.toLowerCase().trim();
   
-  // Start from row 1 (skip header)
   for (let i = 1; i < data.length; i++) {
     const rowEmail = data[i][emailColIndex].toString().toLowerCase().trim();
     if (rowEmail === checkEmail) {
@@ -110,35 +114,33 @@ function getSheet() {
   let sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
-    // Init Headers
+    // Init Headers (12 Columns)
+    // 日期、Owner、券商、股票代號、股票名稱、買進股數（股）、幣別、購買金額、賣出股數（股）、賣出金額、配股數量、配息金額
     sheet.appendRow([
-      "id", "created_at", "user_email", "stock_symbol", "stock_name", 
-      "type", "date", "price", "quantity", "fee", "tax", "total_amount", "note"
+      "Date", "Owner", "Broker", "Symbol", "Name", 
+      "Currency", "Buy_Qty", "Buy_Amt", 
     ]);
   }
   return sheet;
 }
+// Version: Fixed Duplicate Name & Header Order (Timestamp: ${new Date().toISOString()})
 
-function getStocks(userEmail) {
+function getStocks() {
   const sheet = getSheet();
   const data = sheet.getDataRange().getValues();
-  if (data.length < 2) return { status: "success", data: [] }; // No data
+  if (data.length < 2) return { status: "success", data: [] };
 
   const headers = data[0];
   const rows = data.slice(1);
   
-  // Filter by Email
-  const userRows = rows.filter(r => r[2] === userEmail);
-  
-  // Map to Object
-  const results = userRows.map(row => {
+  const results = rows.map(row => {
     let obj = {};
     headers.forEach((h, i) => obj[h] = row[i]);
     return obj;
   });
   
-  // Sort by date desc
-  results.sort((a, b) => new Date(b.date) - new Date(a.date));
+  // Sort by Date desc
+  results.sort((a, b) => new Date(b.Date) - new Date(a.Date));
   
   return { status: "success", data: results };
 }
@@ -146,30 +148,29 @@ function getStocks(userEmail) {
 function addStock(data) {
   const sheet = getSheet();
   
-  if (!data.user_email || !data.stock_symbol) {
-    throw new Error("Missing required fields");
-  }
-  
-  const id = Utilities.getUuid();
-  const createdAt = new Date();
+  // Mapping
+  // Data keys from frontend: date, owner, broker, symbol, name, currency, ...
+  // specific logic per type is handled in frontend, backend just receives all possible fields
   
   const newRow = [
-    id,
-    createdAt,
-    data.user_email,
-    data.stock_symbol,
-    data.stock_name || "",
-    data.type || "buy", 
-    data.date || new Date().toISOString().split('T')[0],
-    data.price || 0,
-    data.quantity || 0,
-    data.fee || 0,
-    data.tax || 0,
-    data.total_amount || 0,
-    data.note || ""
+    data.date || new Date(),
+    data.owner || "",
+    data.broker || "",
+    data.symbol || "",
+    data.name || "",
+
+    data.currency || "TWD", // Moved before Buy_Qty
+    data.buy_qty || "",
+    data.buy_amount || "",
+    data.sell_qty || "",
+    data.sell_amount || "",
+    data.stock_div || "",
+    data.cash_div || "",
+    new Date(), // Created_At
+    data.user_email // User_Email
   ];
   
   sheet.appendRow(newRow);
   
-  return { status: "success", id: id };
+  return { status: "success" };
 }

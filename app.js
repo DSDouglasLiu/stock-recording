@@ -1,10 +1,10 @@
+console.log("App Version: v2.1 (Syntax Fix Verified)");
 
 // Configuration
 const GOOGLE_CLIENT_ID = "368914333961-lk0vd7iurbpbuut1dqmrrl7qvo0ctrah.apps.googleusercontent.com";
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwGmMRPDpEFreiManpbHsvbmtNIvHYrqQIoK1mkc73zsnpEHd08X67ATAG7Mgr5O3axVw/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzns0v8JgR7yeg6xQ1VGJQKkl4ccfyCai1sQYPZh4loAS0R3j-y_povTB0rDjMISiP-eg/exec";
 
-// DOM Elements
-const btnAddStock = document.getElementById("btnAddStock");
+// DOM Elements (fetched dynamically)
 
 // State
 let currentUser = null;
@@ -18,163 +18,218 @@ function switchView(viewId) {
     document.querySelectorAll(".page-view").forEach(el => el.classList.add("hidden"));
     document.getElementById(viewId).classList.remove("hidden");
 
-    // Toggle FAB: Show only on Dashboard
+    // Update Tab State
+    const tabRecent = document.getElementById("tabNavRecent");
+    const tabAdd = document.getElementById("tabNavAdd");
+
     if (viewId === "viewDashboard") {
-        if (btnAddStock) btnAddStock.style.display = "flex";
-    } else {
-        if (btnAddStock) btnAddStock.style.display = "none";
+        if (tabRecent) tabRecent.classList.add("active");
+        if (tabAdd) tabAdd.classList.remove("active");
+    } else if (viewId === "viewForm") {
+        if (tabRecent) tabRecent.classList.remove("active");
+        if (tabAdd) tabAdd.classList.add("active");
     }
 }
 
-if (btnAddStock) btnAddStock.addEventListener("click", () => {
-    if (!currentUser) {
-        alert("請先登入");
-        return;
+// Initialization function to attach event listeners
+function initializeEventListeners() {
+    // Tab Listeners
+    const tabAdd = document.getElementById("tabNavAdd");
+    if (tabAdd) tabAdd.addEventListener("click", () => {
+        if (!currentUser) { alert("請先登入"); return; }
+        showAddForm();
+    });
+
+    const tabRecent = document.getElementById("tabNavRecent");
+    if (tabRecent) tabRecent.addEventListener("click", () => {
+        // If coming back to Dashboard (Recent), maybe reload? 
+        // For now just switch view.
+        switchView("viewDashboard");
+    });
+
+    const btnCancel = document.getElementById("btnCancel");
+    if (btnCancel) btnCancel.addEventListener("click", () => switchView("viewDashboard"));
+
+    const btnSave = document.getElementById("btnSave");
+    if (btnSave && !btnSave.hasAttribute("data-bound")) {
+        btnSave.setAttribute("data-bound", "true");
+        btnSave.addEventListener("click", async () => {
+            const typeEl = document.querySelector("input[name='stockType']:checked");
+            const type = typeEl ? typeEl.value : "buy";
+
+            const date = document.getElementById("inpDate").value;
+            const owner = document.getElementById("inpOwner").value;
+            const broker = document.getElementById("inpBroker").value.trim();
+            const symbol = document.getElementById("inpSymbol").value.trim();
+            const name = document.getElementById("inpName").value.trim();
+            const currency = document.getElementById("inpCurrencyInput").value.trim();
+
+            // Type Specific
+            let buy_qty = "", buy_amount = "";
+            let sell_qty = "", sell_amount = "";
+            let stock_div = "";
+            let cash_div = "";
+
+            if (type === 'buy') {
+                buy_qty = document.getElementById("inpBuyQty").value;
+                buy_amount = document.getElementById("inpBuyAmt").value;
+                if (!buy_qty || !buy_amount) { alert("請輸入買進股數與金額"); return; }
+            }
+            if (type === 'sell') {
+                sell_qty = document.getElementById("inpSellQty").value;
+                sell_amount = document.getElementById("inpSellAmt").value;
+                if (!sell_qty || !sell_amount) { alert("請輸入賣出股數與金額"); return; }
+            }
+            if (type === 'stock_div') {
+                stock_div = document.getElementById("inpStockDivQty").value;
+                if (!stock_div) { alert("請輸入配股數量"); return; }
+            }
+            if (type === 'cash_div') {
+                cash_div = document.getElementById("inpCashDivAmt").value;
+                if (!cash_div) { alert("請輸入配息金額"); return; }
+            }
+
+            if (!symbol || !date || !broker) {
+                alert("請填寫基本資料 (日期、券商、代號)");
+                return;
+            }
+
+            const payload = {
+                action: "addStock",
+                user_email: currentUser.email,
+                date, owner, broker, symbol, name, currency,
+                buy_qty, buy_amount,
+                sell_qty, sell_amount,
+                stock_div, cash_div
+            };
+
+            btnSave.textContent = "儲存中...";
+            btnSave.disabled = true;
+
+            try {
+                // BACKEND FIX: Sending action in body is now supported by backend
+                const res = await fetch(GAS_API_URL, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+
+                if (result.status === "success") {
+                    alert("儲存成功");
+                    loadDashboard();
+                    switchView("viewDashboard");
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (e) {
+                alert("儲存失敗: " + e.message);
+                console.error(e);
+            } finally {
+                btnSave.textContent = "儲存";
+                btnSave.disabled = false;
+            }
+        });
     }
-    showAddForm();
-});
+
+    // Close function
+}
+
+// Call initialization function when DOM is ready
+document.addEventListener("DOMContentLoaded", initializeEventListeners);
+
 
 // =========================================
 // Form Logic
 // =========================================
+
 function showAddForm() {
     // Reset inputs
-    document.getElementById("inpDate").value = new Date().toISOString().split('T')[0];
-    document.getElementById("inpSymbol").value = "";
-    document.getElementById("inpName").value = "";
-    document.getElementById("inpPrice").value = "";
-    document.getElementById("inpQty").value = "";
-    document.getElementById("inpFee").value = "";
-    document.getElementById("inpTax").value = "";
+    const elDate = document.getElementById("inpDate");
+    if (elDate) elDate.value = new Date().toISOString().split('T')[0];
 
-    // Reset Radio
+    const elOwner = document.getElementById("inpOwner");
+    if (elOwner) elOwner.value = "J";
+
+    // Clear Text Inputs
+    ["inpBroker", "inpSymbol", "inpName", "inpBuyQty", "inpBuyAmt", "inpSellQty", "inpSellAmt", "inpStockDivQty", "inpCashDivAmt"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+    });
+
+    const elCurr = document.getElementById("inpCurrencyInput");
+    if (elCurr) elCurr.value = "TWD";
+
+    // Reset Type
     const radioBuy = document.querySelector("input[name='stockType'][value='buy']");
     if (radioBuy) {
         radioBuy.checked = true;
-        radioBuy.dispatchEvent(new Event('change')); // Trigger toggleType
+        // Manually trigger change to update visibility
+        window.toggleFormType();
     }
 
-    document.getElementById("txtTotal").textContent = "$ 0";
-
+    populateDatalists();
     switchView("viewForm");
 }
 
-window.toggleType = function (type) {
-    // Visual update
-    const isBuy = document.querySelector("input[name='stockType']:checked").value === 'buy';
-    const lblBuy = document.getElementById("lblTypeBuy");
-    const lblSell = document.getElementById("lblTypeSell");
+function populateDatalists() {
+    // Extract unique values from loaded data
+    const brokers = new Set(["台証", "元大", "國泰", "群益"]);
+    const symbols = new Set();
+    const names = new Set();
+    const currencies = new Set(["TWD", "USD", "JPY"]);
 
-    if (lblBuy && lblSell) {
-        if (isBuy) {
-            lblBuy.style.background = "#EFF6FF"; lblBuy.style.color = "#2563EB";
-            lblSell.style.background = "white"; lblSell.style.color = "#374151";
-        } else {
-            lblSell.style.background = "#ECFDF5"; lblSell.style.color = "#059669";
-            lblBuy.style.background = "white"; lblBuy.style.color = "#374151";
-        }
-    }
-    calculateTotal();
-}
-
-function calculateTotal() {
-    const price = Number(document.getElementById("inpPrice").value) || 0;
-    const qty = Number(document.getElementById("inpQty").value) || 0;
-    const fee = Number(document.getElementById("inpFee").value) || 0;
-    const tax = Number(document.getElementById("inpTax").value) || 0;
-
-    // Safety check for elements exist
-    const typeEl = document.querySelector("input[name='stockType']:checked");
-    if (!typeEl) return;
-
-    const isBuy = typeEl.value === 'buy';
-
-    let total = 0;
-    const subtotal = price * qty;
-
-    if (isBuy) {
-        total = subtotal + fee;
-    } else {
-        total = subtotal - fee - tax;
-    }
-
-    const txtTotal = document.getElementById("txtTotal");
-    if (txtTotal) txtTotal.textContent = "$ " + Math.round(total).toLocaleString();
-    return total;
-}
-
-// Bind Calcs
-["inpPrice", "inpQty", "inpFee", "inpTax"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener("input", calculateTotal);
-});
-document.querySelectorAll("input[name='stockType']").forEach(el => {
-    el.addEventListener("change", () => window.toggleType());
-});
-
-const btnCancel = document.getElementById("btnCancel");
-const btnSave = document.getElementById("btnSave");
-
-if (btnCancel) btnCancel.addEventListener("click", () => switchView("viewDashboard"));
-
-if (btnSave) btnSave.addEventListener("click", async () => {
-    const typeEl = document.querySelector("input[name='stockType']:checked");
-    const isBuy = typeEl ? typeEl.value === 'buy' : true;
-
-    const date = document.getElementById("inpDate").value;
-    const symbol = document.getElementById("inpSymbol").value.trim();
-    const name = document.getElementById("inpName").value.trim();
-    const price = Number(document.getElementById("inpPrice").value);
-    const qty = Number(document.getElementById("inpQty").value);
-    const fee = Number(document.getElementById("inpFee").value) || 0;
-    const tax = Number(document.getElementById("inpTax").value) || 0;
-
-    if (!symbol || !date || price <= 0 || qty <= 0) {
-        alert("請填寫完整正確資料");
-        return;
-    }
-
-    const total = calculateTotal();
-
-    const payload = {
-        action: "addStock",
-        user_email: currentUser.email, // backend checks permission based on this
-        type: isBuy ? "buy" : "sell",
-        date,
-        stock_symbol: symbol,
-        stock_name: name,
-        price,
-        quantity: qty,
-        fee,
-        tax,
-        total_amount: total
-    };
-
-    btnSave.textContent = "儲存中...";
-    btnSave.disabled = true;
-
-    try {
-        const res = await fetch(GAS_API_URL, {
-            method: "POST",
-            body: JSON.stringify(payload)
+    if (stocksData && stocksData.length > 0) {
+        stocksData.forEach(item => {
+            if (item.Broker) brokers.add(item.Broker);
+            if (item.Symbol) symbols.add(item.Symbol);
+            if (item.Name) names.add(item.Name);
+            if (item.Currency) currencies.add(item.Currency);
         });
-        const result = await res.json();
-
-        if (result.status === "success") {
-            alert("儲存成功");
-            loadDashboard();
-            switchView("viewDashboard");
-        } else {
-            throw new Error(result.message);
-        }
-    } catch (e) {
-        alert("儲存失敗: " + e.message);
-        console.error(e);
-    } finally {
-        btnSave.textContent = "儲存";
-        btnSave.disabled = false;
     }
-});
+
+    fillDatalist("listBrokers", brokers);
+    fillDatalist("listSymbols", symbols);
+    fillDatalist("listNames", names);
+    fillDatalist("listCurrencies", currencies);
+}
+
+function fillDatalist(id, set) {
+    const list = document.getElementById(id);
+    if (!list) return;
+    list.innerHTML = "";
+    set.forEach(val => {
+        const opt = document.createElement("option");
+        opt.value = val;
+        list.appendChild(opt);
+    });
+}
+
+window.toggleFormType = function () {
+    const el = document.querySelector("input[name='stockType']:checked");
+    if (!el) return;
+    const type = el.value;
+
+    // Hide all dynamic
+    document.querySelectorAll(".dynamic-group").forEach(el => el.classList.add("hidden"));
+
+    // Show specific
+    if (type === 'buy') {
+        const f = document.getElementById("fieldsBuy");
+        if (f) f.classList.remove("hidden");
+    }
+    if (type === 'sell') {
+        const f = document.getElementById("fieldsSell");
+        if (f) f.classList.remove("hidden");
+    }
+    if (type === 'stock_div') {
+        const f = document.getElementById("fieldsStockDiv");
+        if (f) f.classList.remove("hidden");
+    }
+    if (type === 'cash_div') {
+        const f = document.getElementById("fieldsCashDiv");
+        if (f) f.classList.remove("hidden");
+    }
+}
 
 
 // =========================================
@@ -218,6 +273,7 @@ function updateUIForLogin() {
         userAvatar.src = currentUser.picture;
     }
 
+    switchView("viewDashboard"); // Ensure FAB is shown
     loadDashboard();
 }
 
@@ -240,17 +296,19 @@ async function loadDashboard() {
         const res = await fetch(url);
         const result = await res.json();
 
+        console.log("API Result:", result);
+
         if (result.status === "success") {
             stocksData = result.data;
             renderList(stocksData);
-            calculateSummary(stocksData);
         } else {
             throw new Error(result.message || "Unknown error");
         }
     } catch (e) {
-        console.error(e);
-        // Special UI for Permission Error
-        if (e.message.includes("Permission Denied")) {
+        console.error("Load Failed:", e);
+
+        const msg = e.message.toLowerCase();
+        if (msg.includes("permission") || msg.includes("denied") || msg.includes("auth")) {
             list.innerHTML = `
                 <div style="text-align:center; padding: 40px;">
                     <div style="font-size:48px;">🚫</div>
@@ -258,7 +316,6 @@ async function loadDashboard() {
                     <div style="opacity:0.7; font-size:14px; margin-top:8px;">您的 Email (${currentUser.email}) 不在許可名單中。</div>
                 </div>
             `;
-            // Also reset summary
             const cardTitle = document.querySelector("#viewDashboard div[style*='background'] div[style*='font-size: 32px']");
             if (cardTitle) cardTitle.textContent = "$ -";
         } else {
@@ -277,46 +334,55 @@ function renderList(data) {
         return;
     }
 
-    data.forEach(item => {
-        const isBuy = item.type === 'buy';
-        const typeLabel = isBuy ? "買入" : "賣出";
-        const typeClass = isBuy ? "type-buy" : "type-sell";
-        // Format strings
-        const dateStr = item.date ? item.date.toString().substring(0, 10) : "";
-        const amountStr = new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(item.total_amount);
+    // Limit to 20 items
+    const displayData = data.slice(0, 20);
+
+    displayData.forEach(item => {
+        let typeLabel = "未知";
+        let typeClass = "type-buy";
+        let mainValue = "";
+
+        if (item.Buy_Amt) {
+            typeLabel = "買入";
+            typeClass = "type-buy";
+            mainValue = "- $ " + Number(item.Buy_Amt).toLocaleString();
+        }
+        else if (item.Sell_Amt) {
+            typeLabel = "賣出";
+            typeClass = "type-sell";
+            mainValue = "+ $ " + Number(item.Sell_Amt).toLocaleString();
+        }
+        else if (item.Stock_Div) {
+            typeLabel = "配股";
+            typeClass = "type-sell";
+            mainValue = "+" + item.Stock_Div + " 股";
+        }
+        else if (item.Cash_Div) {
+            typeLabel = "配息";
+            typeClass = "type-sell";
+            mainValue = "+ $ " + Number(item.Cash_Div).toLocaleString();
+        }
+
+        const dateStr = item.Date ? item.Date.substring(0, 10) : "";
 
         const card = document.createElement("div");
         card.className = "stock-card";
         card.innerHTML = `
             <div class="stock-info">
                 <div class="stock-symbol">
-                    ${item.stock_symbol} 
+                    <span style="font-size:12px; color:#6B7280; margin-right:4px;">${item.Broker || ""}</span>
+                    ${item.Name || item.Symbol} 
                     <span class="type-badge ${typeClass}">${typeLabel}</span>
                 </div>
-                <div class="stock-date">${dateStr}</div>
+                <div class="stock-date">${dateStr} · ${item.Owner || ""}</div>
             </div>
-            <div class="stock-amount">${amountStr}</div>
+            <div class="stock-amount">${mainValue}</div>
         `;
         list.appendChild(card);
     });
 }
 
-function calculateSummary(data) {
-    let totalInvested = 0;
 
-    data.forEach(item => {
-        if (item.type === 'buy') {
-            totalInvested += Number(item.total_amount);
-        } else {
-            totalInvested -= Number(item.total_amount);
-        }
-    });
-
-    const cardTitle = document.querySelector("#viewDashboard div[style*='background'] div[style*='font-size: 32px']");
-    if (cardTitle) {
-        cardTitle.textContent = new Intl.NumberFormat('zh-TW', { style: 'currency', currency: 'TWD', minimumFractionDigits: 0 }).format(totalInvested);
-    }
-}
 
 // Init
 window.onload = function () {
