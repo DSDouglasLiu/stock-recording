@@ -313,7 +313,7 @@ async function loadDashboard() {
                 <div style="text-align:center; padding: 40px;">
                     <div style="font-size:48px;">🚫</div>
                     <div style="font-weight:700; color:#EF4444; margin-top:16px;">權限不足</div>
-                    <div style="opacity:0.7; font-size:14px; margin-top:8px;">您的 Email (${currentUser.email}) 不在許可名單中。</div>
+
                 </div>
             `;
             const cardTitle = document.querySelector("#viewDashboard div[style*='background'] div[style*='font-size: 32px']");
