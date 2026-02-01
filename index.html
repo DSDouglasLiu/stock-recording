@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stock Recording</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        /* Project Specific Overrides */
+        .stock-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stock-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stock-symbol {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .stock-date {
+            font-size: 12px;
+            color: #6B7280;
+        }
+
+        .stock-amount {
+            font-weight: 700;
+            font-size: 16px;
+            text-align: right;
+        }
+
+        .type-badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-left: 6px;
+        }
+
+        .type-buy {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .type-sell {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        /* Fab Button */
+        .fab-add {
+            position: absolute;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--color-brand-600);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+            cursor: pointer;
+            z-index: 100;
+            transition: transform 0.2s;
+        }
+
+        .fab-add:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-shell">
+        <!-- Header -->
+        <div class="top-nav-container">
+            <div style="font-size: 18px; font-weight: 600; padding-left: 16px;">Stock Recording</div>
+            <div style="flex:1"></div>
+            <!-- Google Sign In Button Container -->
+            <div id="g_id_signin"></div>
+            <!-- User Info (Hidden by default) -->
+            <div id="userInfo" style="display:none; align-items:center; padding-right:16px;">
+                <img id="userAvatar" src="" style="width:32px; height:32px; border-radius:50%; border:2px solid white;">
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard View -->
+            <div id="viewDashboard" class="page-view" style="padding: 16px;">
+                <!-- Summary Card -->
+                <div
+                    style="background: linear-gradient(135deg, #3B82F6, #2563EB); border-radius: 16px; padding: 20px; color: white; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(37,99,235,0.2);">
+                    <div style="font-size: 14px; opacity: 0.9;">總投資金額</div>
+                    <div style="font-size: 32px; font-weight: 700; margin-top: 4px;">$ 0</div>
+                    <div style="margin-top: 12px; display: flex; gap: 16px;">
+                        <div>
+                            <div style="font-size: 12px; opacity: 0.8;">庫存市值</div>
+                            <div style="font-weight: 600;">$ 0</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 12px; opacity: 0.8;">損益</div>
+                            <div style="font-weight: 600;">$ 0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="font-size: 18px; font-weight: 600; color: #111; margin-bottom: 12px;">近期交易</div>
+
+                <div id="transactionList">
+                    <div class="hint" style="text-align:center; padding: 40px; color: #9CA3AF;">
+                        請先登入以檢視資料
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form View (Hidden) -->
+            <div id="viewForm" class="page-view hidden" style="padding: 16px;">
+                <!-- To be implemented -->
+            </div>
+        </div>
+
+        <!-- FAB for Add -->
+        <div id="btnAddStock" class="fab-add">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>
