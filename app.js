@@ -91,6 +91,18 @@ function hideModal() {
     }
 }
 
+function showLoading(text = "處理中...") {
+    const overlay = document.getElementById("loadingOverlay");
+    const txt = document.getElementById("loadingText");
+    if (txt) txt.textContent = text;
+    if (overlay) overlay.classList.add("active");
+}
+
+function hideLoading() {
+    const overlay = document.getElementById("loadingOverlay");
+    if (overlay) overlay.classList.remove("active");
+}
+
 // Call initialization function when DOM is ready
 document.addEventListener("DOMContentLoaded", initializeEventListeners);
 
@@ -413,7 +425,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showModal("確認刪除", "確定要刪除這筆紀錄嗎？此動作無法復原。", async () => {
             // Confirm Callback
             try {
-                showModal("處理中", "正在刪除...");
+                showLoading("正在刪除...");
                 const result = await callGAS({
                     action: "deleteStock",
                     user_email: currentUser.email,
@@ -430,6 +442,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             } catch (e) {
                 showModal("錯誤", "刪除失敗: " + e.message);
+            } finally {
+                hideLoading();
             }
         });
     });
@@ -496,7 +510,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 stock_div, cash_div, lending_amount
             };
 
-            btnSave.textContent = statusText;
+            showLoading(statusText);
             btnSave.disabled = true;
 
             try {
@@ -513,6 +527,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 showModal("錯誤", "失敗: " + e.message);
                 console.error(e);
             } finally {
+                hideLoading();
                 btnSave.textContent = editingRowIndex ? "更新" : "儲存";
                 btnSave.disabled = false;
             }
