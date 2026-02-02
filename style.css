@@ -3805,3 +3805,100 @@ input[type=number] {
   color: #F87171;
   /* Red tint */
 }
+
+/* =========================================
+   16. Global Modal / Popup Component
+   ========================================= */
+.app-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.app-modal.active {
+  visibility: visible;
+  opacity: 1;
+}
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--se-color-overlay-scrim, rgba(0, 0, 0, 0.5));
+  backdrop-filter: blur(2px);
+}
+
+.modal-container {
+  position: relative;
+  background: #FFFFFF;
+  width: 100%;
+  max-width: 320px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  transform: scale(0.95);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+
+.app-modal.active .modal-container {
+  transform: scale(1);
+}
+
+.modal-header {
+  padding: 24px 24px 16px;
+  /* Top L R Bottom */
+  text-align: center;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0;
+}
+
+.modal-body {
+  padding: 0 24px 24px;
+  text-align: center;
+  font-size: 15px;
+  color: #4B5563;
+  line-height: 1.5;
+}
+
+.modal-footer {
+  display: flex;
+  border-top: 1px solid #F3F4F6;
+}
+
+.modal-btn {
+  flex: 1;
+  height: 50px;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-brand-600, #2563EB);
+  /* Use brand color */
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modal-btn:active {
+  background: #F9FAFB;
+}
+
+.modal-btn.danger {
+  color: var(--color-sys-error, #EF4444);
+}
