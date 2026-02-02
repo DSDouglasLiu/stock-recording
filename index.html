@@ -238,12 +238,13 @@
 
         <!-- Form View (Hidden) -->
         <div id="viewForm" class="page-view hidden" style="padding: 16px;">
-            <div style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">新增紀錄</div>
+            <!-- Removed Header -->
 
             <!-- Type Tabs -->
             <div class="form-group-stack">
+                <!-- Row 1: Buy / Sell -->
                 <div
-                    style="background:white; padding:4px; border-radius:8px; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:4px; border:1px solid #E5E7EB;">
+                    style="background:white; padding:4px; border-radius:8px; display:grid; grid-template-columns:1fr 1fr; gap:4px; border:1px solid #E5E7EB;">
                     <label class="type-tab" id="tabBuy">
                         <input type="radio" name="stockType" value="buy" checked onchange="toggleFormType()">
                         <span>買入</span>
@@ -252,6 +253,10 @@
                         <input type="radio" name="stockType" value="sell" onchange="toggleFormType()">
                         <span>賣出</span>
                     </label>
+                </div>
+                <!-- Row 2: Divs / Lending -->
+                <div
+                    style="background:white; padding:4px; border-radius:8px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; border:1px solid #E5E7EB;">
                     <label class="type-tab" id="tabStockDiv">
                         <input type="radio" name="stockType" value="stock_div" onchange="toggleFormType()">
                         <span>配股</span>
@@ -259,6 +264,10 @@
                     <label class="type-tab" id="tabCashDiv">
                         <input type="radio" name="stockType" value="cash_div" onchange="toggleFormType()">
                         <span>配息</span>
+                    </label>
+                    <label class="type-tab" id="tabLending">
+                        <input type="radio" name="stockType" value="lending" onchange="toggleFormType()">
+                        <span>借出</span>
                     </label>
                 </div>
 
@@ -353,6 +362,14 @@
                     <div>
                         <label class="inp-label">配息金額</label>
                         <input type="number" id="inpCashDivAmt" class="inp-field" placeholder="0">
+                    </div>
+                </div>
+
+                <!-- Lending Specific -->
+                <div id="fieldsLending" class="dynamic-group hidden">
+                    <div>
+                        <label class="inp-label">借出收入</label>
+                        <input type="number" id="inpLendingAmt" class="inp-field" placeholder="0">
                     </div>
                 </div>
 
