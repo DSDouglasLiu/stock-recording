@@ -225,7 +225,7 @@
 
         <!-- Main Tabs -->
         <div class="main-tabs">
-            <div id="tabNavAdd" class="main-tab-item">新增紀錄</div>
+            <div id="tabNavAdd" class="main-tab-item">登打與修改</div>
             <div id="tabNavRecent" class="main-tab-item active">近期紀錄</div>
         </div>
 
@@ -245,6 +245,7 @@
 
             <!-- Type Tabs -->
             <div class="form-group-stack">
+                <!-- ... Tabs ... -->
                 <!-- Row 1: Buy / Sell -->
                 <div
                     style="background:white; padding:4px; border-radius:8px; display:grid; grid-template-columns:1fr 1fr; gap:4px; border:1px solid #E5E7EB;">
@@ -380,6 +381,9 @@
                 <div style="display:flex; gap:12px; margin-top:20px; padding-bottom:40px;">
                     <button id="btnCancel"
                         style="flex:1; padding:12px; border-radius:12px; border:1px solid #E5E7EB; background:white; font-weight:600;">取消</button>
+                    <!-- Delete Button (Hidden initially) -->
+                    <button id="btnDelete" class="hidden"
+                        style="flex:1; padding:12px; border-radius:12px; border:none; background:#EF4444; color:white; font-weight:600;">刪除</button>
                     <button id="btnSave"
                         style="flex:1; padding:12px; border-radius:12px; border:none; background:#2563EB; color:white; font-weight:600;">儲存</button>
                 </div>
