@@ -99,23 +99,13 @@
         }
 
         .type-badge {
-            font-size: 10px;
-            padding: 2px 6px;
+            font-size: 16px;
+            /* Matched to Stock Name size */
+            padding: 2px 8px;
             border-radius: 4px;
             font-weight: 500;
         }
 
-        .type-buy {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        /* Red for Buy/Expense aspect? Or Standard Red/Green? TW stock: Red=Up. */
-        /* Let's use Buy = Red (Cost), Sell = Green (Income) or vice versa? 
-           Actually, let's keep it neutral colored or simpler.
-           Buy = Expense (Out)
-           Sell = Income (In)
-        */
         .type-buy {
             background: #FEF2F2;
             color: #DC2626;
@@ -124,6 +114,14 @@
         .type-sell {
             background: #ECFDF5;
             color: #059669;
+        }
+
+        /* New class for Dividends (Black Text) */
+        .type-div {
+            background: #F3F4F6;
+            /* Neutral Gray Background */
+            color: #000000;
+            /* Black Text */
         }
 
         /* Main Tabs */
