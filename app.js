@@ -182,13 +182,19 @@ document.addEventListener("DOMContentLoaded", initializeEventListeners);
 // Form Logic
 // =========================================
 
-function showAddForm() {
-    // Reset inputs
-    const elDate = document.getElementById("inpDate");
-    if (elDate) elDate.value = new Date().toISOString().split('T')[0];
+// =========================================
+// Form Logic
+// =========================================
 
-    const elOwner = document.getElementById("inpOwner");
-    if (elOwner) elOwner.value = "J";
+function showAddForm() {
+    // Reset Mode
+    editingRowIndex = null;
+    document.getElementById("btnSave").textContent = "儲存";
+    document.getElementById("btnDelete").classList.add("hidden");
+
+    // Reset Form
+    document.getElementById("inpDate").valueAsDate = new Date(); // Default today
+    document.getElementById("inpOwner").value = "J";
 
     // Clear Text Inputs
     ["inpBroker", "inpSymbol", "inpName", "inpBuyQty", "inpBuyAmt", "inpSellQty", "inpSellAmt", "inpStockDivQty", "inpCashDivAmt", "inpLendingAmt"].forEach(id => {
@@ -196,19 +202,12 @@ function showAddForm() {
         if (el) el.value = "";
     });
 
-    const elCurr = document.getElementById("inpCurrencyInput");
-    if (elCurr) elCurr.value = "TWD";
+    // Default to Buy
+    document.querySelector('input[name="stockType"][value="buy"]').checked = true;
+    toggleFormType();
 
-    // Reset Type
-    const radioBuy = document.querySelector("input[name='stockType'][value='buy']");
-    if (radioBuy) {
-        radioBuy.checked = true;
-        // Manually trigger change to update visibility
-        window.toggleFormType();
-    }
-
-    populateDatalists();
-    switchView("viewForm");
+    populateDatalists(); // Ensure lists are fresh
+    switchView("viewForm"); // Navigate to view
 }
 
 // Map for Auto-fill
@@ -604,26 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ... inside switchView or separate helper ...
 
-function showAddForm() {
-    // Reset Mode
-    editingRowIndex = null;
-    document.getElementById("btnSave").textContent = "儲存";
-    document.getElementById("btnDelete").classList.add("hidden");
 
-    // Reset Form
-    document.getElementById("inpDate").valueAsDate = new Date(); // Default today
-    document.getElementById("inpOwner").value = "J";
-
-    // Clear Text Inputs
-    ["inpBroker", "inpSymbol", "inpName", "inpBuyQty", "inpBuyAmt", "inpSellQty", "inpSellAmt", "inpStockDivQty", "inpCashDivAmt", "inpLendingAmt"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = "";
-    });
-
-    // Default to Buy
-    document.querySelector('input[name="stockType"][value="buy"]').checked = true;
-    toggleFormType();
-}
 
 function startEdit(item) {
     editingRowIndex = item._rowIndex;
