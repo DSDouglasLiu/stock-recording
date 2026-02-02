@@ -2,7 +2,7 @@ console.log("App Version: v2.1 (Syntax Fix Verified)");
 
 // Configuration
 const GOOGLE_CLIENT_ID = "368914333961-lk0vd7iurbpbuut1dqmrrl7qvo0ctrah.apps.googleusercontent.com";
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbx_-OWfYfV51N2rSoJ6BsGNrWOM2jmy5BRXV7wmu-eDK7tjbU5VHgaTFhT8-roLOad5vg/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyLhQQ24adWib04y7t1AY33OqfRrPOF0jJmRgIPyeEdN_CDqSlpCehi2Ht7WxkHRFQckQ/exec";
 
 // DOM Elements (fetched dynamically)
 
