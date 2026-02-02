@@ -34,9 +34,10 @@ function switchView(viewId) {
 // Initialization function to attach event listeners
 function initializeEventListeners() {
     // Tab Listeners
+    // Tab Listeners
     const tabAdd = document.getElementById("tabNavAdd");
     if (tabAdd) tabAdd.addEventListener("click", () => {
-        if (!currentUser) { alert("請先登入"); return; }
+        if (!currentUser) { showModal("提示", "請先登入"); return; }
         showAddForm();
     });
 
@@ -73,24 +74,24 @@ function initializeEventListeners() {
             if (type === 'buy') {
                 buy_qty = document.getElementById("inpBuyQty").value;
                 buy_amount = document.getElementById("inpBuyAmt").value;
-                if (!buy_qty || !buy_amount) { alert("請輸入買進股數與金額"); return; }
+                if (!buy_qty || !buy_amount) { showModal("欄位未填", "請輸入買進股數與金額"); return; }
             }
             if (type === 'sell') {
                 sell_qty = document.getElementById("inpSellQty").value;
                 sell_amount = document.getElementById("inpSellAmt").value;
-                if (!sell_qty || !sell_amount) { alert("請輸入賣出股數與金額"); return; }
+                if (!sell_qty || !sell_amount) { showModal("欄位未填", "請輸入賣出股數與金額"); return; }
             }
             if (type === 'stock_div') {
                 stock_div = document.getElementById("inpStockDivQty").value;
-                if (!stock_div) { alert("請輸入配股數量"); return; }
+                if (!stock_div) { showModal("欄位未填", "請輸入配股數量"); return; }
             }
             if (type === 'cash_div') {
                 cash_div = document.getElementById("inpCashDivAmt").value;
-                if (!cash_div) { alert("請輸入配息金額"); return; }
+                if (!cash_div) { showModal("欄位未填", "請輸入配息金額"); return; }
             }
 
             if (!symbol || !date || !broker) {
-                alert("請填寫基本資料 (日期、券商、代號)");
+                showModal("欄位未填", "請填寫基本資料 (日期、券商、代號)");
                 return;
             }
 
@@ -115,14 +116,15 @@ function initializeEventListeners() {
                 const result = await res.json();
 
                 if (result.status === "success") {
-                    alert("儲存成功");
-                    loadDashboard();
-                    switchView("viewDashboard");
+                    showModal("成功", "儲存成功", () => {
+                        loadDashboard();
+                        switchView("viewDashboard");
+                    });
                 } else {
                     throw new Error(result.message);
                 }
             } catch (e) {
-                alert("儲存失敗: " + e.message);
+                showModal("錯誤", "儲存失敗: " + e.message);
                 console.error(e);
             } finally {
                 btnSave.textContent = "儲存";
@@ -131,7 +133,41 @@ function initializeEventListeners() {
         });
     }
 
-    // Close function
+    // Modal Events
+    const modalOverlay = document.querySelector(".modal-overlay");
+    if (modalOverlay) modalOverlay.addEventListener("click", hideModal);
+
+    const modalBtnConfirm = document.getElementById("modalBtnConfirm");
+    if (modalBtnConfirm) modalBtnConfirm.addEventListener("click", hideModal);
+}
+
+// =========================================
+// Global Modal Logic
+// =========================================
+let onModalConfirm = null;
+
+function showModal(title, message, callback) {
+    const modal = document.getElementById("appModal");
+    const elTitle = document.getElementById("modalTitle");
+    const elBody = document.getElementById("modalBody");
+
+    if (!modal) { alert(message); return; } // Fallback
+
+    if (elTitle) elTitle.textContent = title;
+    if (elBody) elBody.textContent = message;
+
+    onModalConfirm = callback;
+    modal.classList.add("active");
+}
+
+function hideModal() {
+    const modal = document.getElementById("appModal");
+    if (modal) modal.classList.remove("active");
+
+    if (onModalConfirm && typeof onModalConfirm === 'function') {
+        onModalConfirm();
+        onModalConfirm = null;
+    }
 }
 
 // Call initialization function when DOM is ready
@@ -340,7 +376,28 @@ function updateUIForLogin() {
 // =========================================
 // Data Logic
 // =========================================
+// Exchange Rates State
+let exchangeRates = { TWD: 1, USD: 32.5 }; // Default fallback
+
+async function fetchExchangeRates() {
+    try {
+        const res = await fetch("https://api.exchangerate-api.com/v4/latest/USD");
+        const data = await res.json();
+        if (data && data.rates) {
+            exchangeRates = data.rates;
+            console.log("Rates Fetched:", exchangeRates);
+        }
+    } catch (e) {
+        console.error("Failed to fetch rates, using fallback.", e);
+    }
+}
+
 async function loadDashboard() {
+    // Fetch rates first (non-blocking if we want speed, but for accuracy we wait or render after)
+    // Let's fire it and not await strictly, OR await to prevent UI jump. 
+    // Given the dashboard loads data too, we can run in parallel.
+    const pRates = fetchExchangeRates();
+
     const list = document.getElementById("transactionList");
     if (!list) return;
 
@@ -353,7 +410,8 @@ async function loadDashboard() {
 
     try {
         const url = `${GAS_API_URL}?action=getStocks&email=${encodeURIComponent(currentUser.email)}`;
-        const res = await fetch(url);
+
+        const [res, _] = await Promise.all([fetch(url), pRates]);
         const result = await res.json();
 
         console.log("API Result:", result);
@@ -401,53 +459,78 @@ function renderList(data) {
         let typeLabel = "未知";
         let typeClass = "type-buy";
         let mainValue = "";
-        let nameColor = "#1F2937"; // A standard dark grey default
+        let subValue = ""; // For TWD conversion
+        let nameColor = "#1F2937";
 
-        // Extract values using both English and Chinese keys
+        // Extract values
         const buyAmt = item.Buy_Amt || item["購買金額"];
         const sellAmt = item.Sell_Amt || item["賣出金額"];
         const stockDiv = item.Stock_Div || item["配股數量"];
         const cashDiv = item.Cash_Div || item["配息金額"];
         const dateRaw = item.Date || item["日期"];
+        const currency = item.Currency || item["幣別"] || "TWD";
+
+        // Helper to format currency
+        const fmt = (val, curr) => `${curr} $ ${Number(val).toLocaleString()}`;
+
+        // Helper to convert to TWD
+        // 1 USD = 32 TWD.  Rate(USD) = 1 (base). Rate(TWD) = 32.
+        // TWD_Val = Amt / Rate(Curr) * Rate(TWD)
+        const calcTWD = (amt, curr) => {
+            if (curr === "TWD") return null;
+            if (!exchangeRates[curr] || !exchangeRates["TWD"]) return null;
+            // Base is USD in my fetch
+            // Val in USD = amt / exchangeRates[curr]
+            // Val in TWD = (amt / exchangeRates[curr]) * exchangeRates["TWD"]
+            const val = (amt / exchangeRates[curr]) * exchangeRates["TWD"];
+            return Math.floor(val);
+        };
 
         if (buyAmt) {
             typeLabel = "買入";
             typeClass = "type-buy";
-            nameColor = "#EF4444"; // Red for Buy
-            mainValue = "$ " + Number(buyAmt).toLocaleString();
+            nameColor = "#EF4444";
+            mainValue = fmt(buyAmt, currency);
+
+            const twdVal = calcTWD(buyAmt, currency);
+            if (twdVal !== null) {
+                subValue = `TWD $ ${twdVal.toLocaleString()}`;
+            }
         }
         else if (sellAmt) {
             typeLabel = "賣出";
             typeClass = "type-sell";
-            nameColor = "#10B981"; // Green for Sell
-            mainValue = "$ " + Number(sellAmt).toLocaleString();
+            nameColor = "#10B981";
+            mainValue = fmt(sellAmt, currency);
+
+            const twdVal = calcTWD(sellAmt, currency);
+            if (twdVal !== null) {
+                subValue = `TWD $ ${twdVal.toLocaleString()}`;
+            }
         }
         else if (stockDiv) {
             typeLabel = "配股";
-            typeClass = "type-div"; // New class: Black Text
-            nameColor = "#EF4444"; // Red Name
+            typeClass = "type-div";
+            nameColor = "#EF4444";
             mainValue = stockDiv + " 股";
+            // Stock Div doesn't need currency conversion
         }
         else if (cashDiv) {
             typeLabel = "配息";
-            typeClass = "type-div"; // New class: Black Text
-            nameColor = "#EF4444"; // Red Name
-            mainValue = "$ " + Number(cashDiv).toLocaleString();
+            typeClass = "type-div";
+            nameColor = "#EF4444";
+            mainValue = fmt(cashDiv, currency);
+
+            const twdVal = calcTWD(cashDiv, currency);
+            if (twdVal !== null) {
+                subValue = `TWD $ ${twdVal.toLocaleString()}`;
+            }
         }
 
-        // Fix Date Timezone Issue: Parse properly
+        // Date Logic
         let dateStr = "";
         if (dateRaw) {
             const d = new Date(dateRaw);
-            // Use "sv-SE" locale to get YYYY-MM-DD format, which is stable
-            // Adding timezone offset logic if needed, but usually formatting a Date object in browser 
-            // uses local time. If the backend sent ISO string (UTC), and user is +8,
-            // 00:00 UTC -> 08:00 Local. So just printing local date is correct.
-            // However, commonly 'substring(0,10)' on ISO string gives previous day if you are ahead of UTC??? 
-            // No, ISO string IS UTC. 
-            // Wait, if Date is 2026-02-02 (midnight) in Sheet, GAS sends 2026-02-02T00:00:00.000Z usually IF script timezone is UTC.
-            // If script is +8, it sends +8 time. 
-            // Let's just trust the browser to format the date object to local string.
             const year = d.getFullYear();
             const month = (d.getMonth() + 1).toString().padStart(2, '0');
             const day = d.getDate().toString().padStart(2, '0');
@@ -460,6 +543,10 @@ function renderList(data) {
 
         const card = document.createElement("div");
         card.className = "stock-card";
+
+        // Layout:
+        // Left: Info
+        // Right: Amount Stack
         card.innerHTML = `
             <div class="stock-info">
                 <div class="stock-symbol">
@@ -469,7 +556,10 @@ function renderList(data) {
                 </div>
                 <div class="stock-date">${dateStr} · ${owner}</div>
             </div>
-            <div class="stock-amount">${mainValue}</div>
+            <div class="stock-amount" style="display:flex; flex-direction:column; align-items:flex-end;">
+                <div>${mainValue}</div>
+                ${subValue ? `<div style="font-size:13px; margin-top:2px;">${subValue}</div>` : ''}
+            </div>
         `;
         list.appendChild(card);
     });
