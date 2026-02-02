@@ -562,13 +562,13 @@ function startEdit(item) {
     // Fill Specifics
     // Fill Specifics
     if (type === 'buy') {
-        const qty = item.Buy_Qty || item["買進股數 (股)"] || item["買進股數"] || item["Buy_Qty"] || "";
+        const qty = item.Buy_Qty || item["買進股數 (股)"] || item["買進股數（股）"] || item["買進股數"] || item["Buy_Qty"] || "";
         const amt = item.Buy_Amt || item["購買金額"] || item["Buy_Amt"] || "";
         document.getElementById("inpBuyQty").value = qty;
         document.getElementById("inpBuyAmt").value = amt;
     }
     else if (type === 'sell') {
-        const qty = item.Sell_Qty || item["賣出股數 (股)"] || item["賣出股數"] || item["Sell_Qty"] || "";
+        const qty = item.Sell_Qty || item["賣出股數 (股)"] || item["賣出股數（股）"] || item["賣出股數"] || item["Sell_Qty"] || "";
         const amt = item.Sell_Amt || item["賣出金額"] || item["Sell_Amt"] || "";
         document.getElementById("inpSellQty").value = qty;
         document.getElementById("inpSellAmt").value = amt;
@@ -638,7 +638,7 @@ function renderList(data) {
             mainValue = fmt(buyAmt, currency);
 
             // Extract Qty
-            const qty = item.Buy_Qty || item["買進股數 (股)"] || item["買進股數"] || 0;
+            const qty = item.Buy_Qty || item["買進股數 (股)"] || item["買進股數（股）"] || item["買進股數"] || 0;
             if (qty) qtyValue = `${Number(qty).toLocaleString()} 股`;
 
             const twdVal = calcTWD(buyAmt, currency);
@@ -653,7 +653,7 @@ function renderList(data) {
             mainValue = fmt(sellAmt, currency);
 
             // Extract Qty
-            const qty = item.Sell_Qty || item["賣出股數 (股)"] || item["賣出股數"] || 0;
+            const qty = item.Sell_Qty || item["賣出股數 (股)"] || item["賣出股數（股）"] || item["賣出股數"] || 0;
             if (qty) qtyValue = `${Number(qty).toLocaleString()} 股`;
 
             const twdVal = calcTWD(sellAmt, currency);
