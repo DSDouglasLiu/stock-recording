@@ -171,19 +171,35 @@ function showAddForm() {
     switchView("viewForm");
 }
 
+// Map for Auto-fill
+let stockMap = {}; // Symbol -> Name
+let nameMap = {};  // Name -> Symbol
+
 function populateDatalists() {
-    // Extract unique values from loaded data
+    // Extract unique values
     const brokers = new Set(["台証", "元大", "國泰", "群益"]);
     const symbols = new Set();
     const names = new Set();
     const currencies = new Set(["TWD", "USD", "JPY"]);
 
+    stockMap = {};
+    nameMap = {};
+
     if (stocksData && stocksData.length > 0) {
         stocksData.forEach(item => {
+            const s = item.Symbol ? item.Symbol.toString().trim() : "";
+            const n = item.Name ? item.Name.toString().trim() : "";
+
             if (item.Broker) brokers.add(item.Broker);
-            if (item.Symbol) symbols.add(item.Symbol);
-            if (item.Name) names.add(item.Name);
             if (item.Currency) currencies.add(item.Currency);
+
+            if (s) symbols.add(s);
+            if (n) names.add(n);
+
+            if (s && n) {
+                stockMap[s] = n;
+                nameMap[n] = s;
+            }
         });
     }
 
@@ -203,6 +219,36 @@ function fillDatalist(id, set) {
         list.appendChild(opt);
     });
 }
+
+// Auto-fill Logic
+document.addEventListener("DOMContentLoaded", () => {
+    const inpSymbol = document.getElementById("inpSymbol");
+    const inpName = document.getElementById("inpName");
+
+    if (inpSymbol) {
+        inpSymbol.addEventListener("input", () => {
+            const val = inpSymbol.value.trim();
+            if (stockMap[val]) {
+                if (inpName && !inpName.value) {
+                    inpName.value = stockMap[val];
+                }
+            }
+        });
+        inpSymbol.setAttribute("placeholder", "代號 (可輸入新值)");
+    }
+
+    if (inpName) {
+        inpName.addEventListener("input", () => {
+            const val = inpName.value.trim();
+            if (nameMap[val]) {
+                if (inpSymbol && !inpSymbol.value) {
+                    inpSymbol.value = nameMap[val];
+                }
+            }
+        });
+        inpName.setAttribute("placeholder", "名稱 (可輸入新值)");
+    }
+});
 
 window.toggleFormType = function () {
     const el = document.querySelector("input[name='stockType']:checked");
