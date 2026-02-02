@@ -47,95 +47,12 @@ function initializeEventListeners() {
         loadDashboard(); // Reload data from Sheet
     });
 
+    // Button Listeners
     const btnCancel = document.getElementById("btnCancel");
     if (btnCancel) btnCancel.addEventListener("click", () => switchView("viewDashboard"));
 
-    const btnSave = document.getElementById("btnSave");
-    if (btnSave && !btnSave.hasAttribute("data-bound")) {
-        btnSave.setAttribute("data-bound", "true");
-        btnSave.addEventListener("click", async () => {
-            const typeEl = document.querySelector("input[name='stockType']:checked");
-            const type = typeEl ? typeEl.value : "buy";
+    // btnSave logic is handled in the main DOMContentLoaded block (bottom of file) to support Edit mode.
 
-            const date = document.getElementById("inpDate").value;
-            const owner = document.getElementById("inpOwner").value;
-            const broker = document.getElementById("inpBroker").value.trim();
-            const symbol = document.getElementById("inpSymbol").value.trim();
-            const name = document.getElementById("inpName").value.trim();
-            const currency = document.getElementById("inpCurrencyInput").value.trim();
-
-            // Type Specific
-            let buy_qty = "", buy_amount = "";
-            let sell_qty = "", sell_amount = "";
-            let stock_div = "";
-            let cash_div = "";
-            let lending_amount = "";
-
-            if (type === 'buy') {
-                buy_qty = document.getElementById("inpBuyQty").value;
-                buy_amount = document.getElementById("inpBuyAmt").value;
-                if (!buy_qty || !buy_amount) { showModal("欄位未填", "請輸入買進股數與金額"); return; }
-            }
-            if (type === 'sell') {
-                sell_qty = document.getElementById("inpSellQty").value;
-                sell_amount = document.getElementById("inpSellAmt").value;
-                if (!sell_qty || !sell_amount) { showModal("欄位未填", "請輸入賣出股數與金額"); return; }
-            }
-            if (type === 'stock_div') {
-                stock_div = document.getElementById("inpStockDivQty").value;
-                if (!stock_div) { showModal("欄位未填", "請輸入配股數量"); return; }
-            }
-            if (type === 'cash_div') {
-                cash_div = document.getElementById("inpCashDivAmt").value;
-                if (!cash_div) { showModal("欄位未填", "請輸入配息金額"); return; }
-            }
-            if (type === 'lending') {
-                lending_amount = document.getElementById("inpLendingAmt").value;
-                if (!lending_amount) { showModal("欄位未填", "請輸入借出收入"); return; }
-            }
-
-            if (!symbol || !date || !broker) {
-                showModal("欄位未填", "請填寫基本資料 (日期、券商、代號)");
-                return;
-            }
-
-            const payload = {
-                action: "addStock",
-                user_email: currentUser.email,
-                date, owner, broker, symbol, name, currency,
-                buy_qty, buy_amount,
-                sell_qty, sell_amount,
-                stock_div, cash_div, lending_amount
-            };
-
-            btnSave.textContent = "儲存中...";
-            btnSave.disabled = true;
-
-            try {
-                // BACKEND FIX: Sending action in body is now supported by backend
-                const res = await fetch(GAS_API_URL, {
-                    method: "POST",
-                    body: JSON.stringify(payload)
-                });
-                const result = await res.json();
-
-                if (result.status === "success") {
-                    showModal("成功", "儲存成功", () => {
-                        loadDashboard();
-                        switchView("viewDashboard");
-                    });
-                } else {
-                    throw new Error(result.message);
-                }
-            } catch (e) {
-                showModal("錯誤", "儲存失敗: " + e.message);
-                console.error(e);
-            } finally {
-                btnSave.textContent = "儲存";
-                btnSave.disabled = false;
-            }
-        });
-    }
 
     // Modal Events
     const modalOverlay = document.querySelector(".modal-overlay");
@@ -215,6 +132,8 @@ let stockMap = {}; // Symbol -> Name
 let nameMap = {};  // Name -> Symbol
 
 function populateDatalists() {
+    console.log("Populating Datalists, stocksData count:", stocksData.length);
+
     // Extract unique values
     const brokers = new Set(["台証", "元大", "國泰", "群益"]);
     const symbols = new Set();
@@ -826,3 +745,22 @@ window.onload = function () {
         { theme: "outline", size: "large", type: "standard", shape: "pill" }
     );
 };
+
+// =========================================
+// Backend API Helper
+// =========================================
+async function callGAS(payload) {
+    if (!GAS_API_URL) throw new Error("API URL Not Configured");
+
+    // Always attach user email if not present (safety)
+    if (currentUser && !payload.user_email) {
+        payload.user_email = currentUser.email;
+    }
+
+    const response = await fetch(GAS_API_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+    });
+
+    return await response.json();
+}
