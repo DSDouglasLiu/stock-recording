@@ -251,6 +251,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         inpName.setAttribute("placeholder", "名稱 (可輸入新值)");
     }
+
+    const inpCurrency = document.getElementById("inpCurrencyInput");
+    if (inpCurrency) {
+        inpCurrency.setAttribute("placeholder", "幣別 (可輸入新值)");
+    }
 });
 
 window.toggleFormType = function () {
@@ -260,6 +265,10 @@ window.toggleFormType = function () {
 
     // Hide all dynamic
     document.querySelectorAll(".dynamic-group").forEach(el => el.classList.add("hidden"));
+
+    // Default: Show Currency
+    const divCurrency = document.getElementById("divCurrency");
+    if (divCurrency) divCurrency.classList.remove("hidden");
 
     // Show specific
     if (type === 'buy') {
@@ -273,6 +282,8 @@ window.toggleFormType = function () {
     if (type === 'stock_div') {
         const f = document.getElementById("fieldsStockDiv");
         if (f) f.classList.remove("hidden");
+        // Hide Currency for Stock Div
+        if (divCurrency) divCurrency.classList.add("hidden");
     }
     if (type === 'cash_div') {
         const f = document.getElementById("fieldsCashDiv");
@@ -413,14 +424,14 @@ function renderList(data) {
         }
         else if (stockDiv) {
             typeLabel = "配股";
-            typeClass = "type-sell";
-            nameColor = "#EF4444"; // Red (Requested)
+            typeClass = "type-div"; // New class: Black Text
+            nameColor = "#EF4444"; // Red Name
             mainValue = stockDiv + " 股";
         }
         else if (cashDiv) {
             typeLabel = "配息";
-            typeClass = "type-sell";
-            nameColor = "#EF4444"; // Red (Requested)
+            typeClass = "type-div"; // New class: Black Text
+            nameColor = "#EF4444"; // Red Name
             mainValue = "$ " + Number(cashDiv).toLocaleString();
         }
 
