@@ -2,7 +2,7 @@ console.log("App Version: v2.1 (Syntax Fix Verified)");
 
 // Configuration
 const GOOGLE_CLIENT_ID = "368914333961-lk0vd7iurbpbuut1dqmrrl7qvo0ctrah.apps.googleusercontent.com";
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxze34OT_vEOIzIGd1RiZHAf7LRKUrJLLr_trSQJpiTdJucPWImAj8FzpnJo4Ab6lb92A/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbx_-OWfYfV51N2rSoJ6BsGNrWOM2jmy5BRXV7wmu-eDK7tjbU5VHgaTFhT8-roLOad5vg/exec";
 
 // DOM Elements (fetched dynamically)
 
@@ -450,6 +450,236 @@ async function loadDashboard() {
     }
 }
 
+let editingRowIndex = null; // State for editing
+
+document.addEventListener("DOMContentLoaded", () => {
+    // ... existing init ...
+    const inpSymbol = document.getElementById("inpSymbol");
+    const inpName = document.getElementById("inpName");
+
+    if (inpSymbol) {
+        inpSymbol.addEventListener("input", () => {
+            const val = inpSymbol.value.trim();
+            if (stockMap[val]) {
+                if (inpName && !inpName.value) {
+                    inpName.value = stockMap[val];
+                }
+            }
+        });
+        inpSymbol.setAttribute("placeholder", "代號 (可輸入新值)");
+    }
+
+    if (inpName) {
+        inpName.addEventListener("input", () => {
+            const val = inpName.value.trim();
+            if (nameMap[val]) {
+                if (inpSymbol && !inpSymbol.value) {
+                    inpSymbol.value = nameMap[val];
+                }
+            }
+        });
+        inpName.setAttribute("placeholder", "名稱 (可輸入新值)");
+    }
+
+    const inpCurrency = document.getElementById("inpCurrencyInput");
+    if (inpCurrency) {
+        inpCurrency.setAttribute("placeholder", "幣別 (可輸入新值)");
+    }
+
+    const btnDelete = document.getElementById("btnDelete");
+
+    // Delete Button Logic
+    if (btnDelete) btnDelete.addEventListener("click", () => {
+        if (!editingRowIndex) return;
+
+        showModal("確認刪除", "確定要刪除這筆紀錄嗎？此動作無法復原。", async () => {
+            // Confirm Callback
+            try {
+                showModal("處理中", "正在刪除...");
+                const result = await callGAS({
+                    action: "deleteStock",
+                    user_email: currentUser.email,
+                    rowIndex: editingRowIndex
+                });
+
+                if (result.status === "success") {
+                    showModal("成功", "刪除成功", () => {
+                        loadDashboard();
+                        switchView("viewDashboard");
+                    });
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (e) {
+                showModal("錯誤", "刪除失敗: " + e.message);
+            }
+        });
+    });
+
+    const btnSave = document.getElementById("btnSave");
+    if (btnSave) {
+        btnSave.addEventListener("click", async () => {
+            // ... Validation Logic (Keep existing) ...
+
+            // Collect Data
+            const type = document.querySelector('input[name="stockType"]:checked').value;
+            const date = document.getElementById("inpDate").value;
+            const owner = document.getElementById("inpOwner").value;
+            const broker = document.getElementById("inpBroker").value;
+            const symbol = document.getElementById("inpSymbol").value;
+            const name = document.getElementById("inpName").value;
+            const currency = document.getElementById("inpCurrencyInput").value || "TWD";
+
+            let buy_qty = "", buy_amount = "";
+            let sell_qty = "", sell_amount = "";
+            let stock_div = "";
+            let cash_div = "";
+            let lending_amount = "";
+
+            if (type === 'buy') {
+                buy_qty = document.getElementById("inpBuyQty").value;
+                buy_amount = document.getElementById("inpBuyAmt").value;
+                if (!buy_qty || !buy_amount) { showModal("欄位未填", "請輸入買進股數與金額"); return; }
+            }
+            if (type === 'sell') {
+                sell_qty = document.getElementById("inpSellQty").value;
+                sell_amount = document.getElementById("inpSellAmt").value;
+                if (!sell_qty || !sell_amount) { showModal("欄位未填", "請輸入賣出股數與金額"); return; }
+            }
+            if (type === 'stock_div') {
+                stock_div = document.getElementById("inpStockDivQty").value;
+                if (!stock_div) { showModal("欄位未填", "請輸入配股數量"); return; }
+            }
+            if (type === 'cash_div') {
+                cash_div = document.getElementById("inpCashDivAmt").value;
+                if (!cash_div) { showModal("欄位未填", "請輸入配息金額"); return; }
+            }
+            if (type === 'lending') {
+                lending_amount = document.getElementById("inpLendingAmt").value;
+                if (!lending_amount) { showModal("欄位未填", "請輸入借出收入"); return; }
+            }
+
+            if (!symbol || !date || !broker) {
+                showModal("欄位未填", "請填寫基本資料 (日期、券商、代號)");
+                return;
+            }
+
+            // Determine Action
+            const action = editingRowIndex ? "updateStock" : "addStock";
+            const statusText = editingRowIndex ? "更新中..." : "儲存中...";
+
+            const payload = {
+                action: action,
+                user_email: currentUser.email,
+                rowIndex: editingRowIndex, // Only used if update
+                date, owner, broker, symbol, name, currency,
+                buy_qty, buy_amount,
+                sell_qty, sell_amount,
+                stock_div, cash_div, lending_amount
+            };
+
+            btnSave.textContent = statusText;
+            btnSave.disabled = true;
+
+            try {
+                const result = await callGAS(payload);
+                if (result.status === "success") {
+                    showModal("成功", editingRowIndex ? "更新成功" : "儲存成功", () => {
+                        loadDashboard();
+                        switchView("viewDashboard");
+                    });
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (e) {
+                showModal("錯誤", "失敗: " + e.message);
+                console.error(e);
+            } finally {
+                btnSave.textContent = editingRowIndex ? "更新" : "儲存";
+                btnSave.disabled = false;
+            }
+        });
+    }
+});
+
+// ... inside switchView or separate helper ...
+
+function showAddForm() {
+    // Reset Mode
+    editingRowIndex = null;
+    document.getElementById("btnSave").textContent = "儲存";
+    document.getElementById("btnDelete").classList.add("hidden");
+
+    // Reset Form
+    document.getElementById("inpDate").valueAsDate = new Date(); // Default today
+    document.getElementById("inpOwner").value = "J";
+
+    // Clear Text Inputs
+    ["inpBroker", "inpSymbol", "inpName", "inpBuyQty", "inpBuyAmt", "inpSellQty", "inpSellAmt", "inpStockDivQty", "inpCashDivAmt", "inpLendingAmt"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+    });
+
+    // Default to Buy
+    document.querySelector('input[name="stockType"][value="buy"]').checked = true;
+    toggleFormType();
+}
+
+function startEdit(item) {
+    editingRowIndex = item._rowIndex;
+    if (!editingRowIndex) { showModal("錯誤", "無法編輯此紀錄 (找不到 ID)"); return; }
+
+    // Switch View
+    switchView("viewForm");
+
+    // Update UI
+    document.getElementById("btnSave").textContent = "更新";
+    document.getElementById("btnDelete").classList.remove("hidden");
+
+    // Fill Data
+    // Date: YYYY-MM-DD
+    const d = new Date(item.Date || item["日期"]);
+    // Adjust for timezone offset to ensure correct date string
+    const dateStr = d.toISOString().split('T')[0];
+    document.getElementById("inpDate").value = dateStr;
+
+    document.getElementById("inpOwner").value = item.Owner || item["Owner"] || "J";
+    document.getElementById("inpBroker").value = item.Broker || item["券商"] || "";
+    document.getElementById("inpSymbol").value = item.Symbol || item["股票代號"] || "";
+    document.getElementById("inpName").value = item.Name || item["股票名稱"] || "";
+    document.getElementById("inpCurrencyInput").value = item.Currency || item["幣別"] || "TWD";
+
+    // Determine Type
+    let type = "buy";
+    if (item.Buy_Amt || item["購買金額"]) type = "buy";
+    else if (item.Sell_Amt || item["賣出金額"]) type = "sell";
+    else if (item.Stock_Div || item["配股數量"]) type = "stock_div";
+    else if (item.Cash_Div || item["配息金額"]) type = "cash_div";
+    else if (item.lending_amount || item["借出收入"] || item["Lending Income"]) type = "lending";
+
+    document.querySelector(`input[name="stockType"][value="${type}"]`).checked = true;
+    toggleFormType();
+
+    // Fill Specifics
+    if (type === 'buy') {
+        document.getElementById("inpBuyQty").value = item.Buy_Qty || item["買進股數 (股)"] || "";
+        document.getElementById("inpBuyAmt").value = item.Buy_Amt || item["購買金額"] || "";
+    }
+    else if (type === 'sell') {
+        document.getElementById("inpSellQty").value = item.Sell_Qty || item["賣出股數 (股)"] || "";
+        document.getElementById("inpSellAmt").value = item.Sell_Amt || item["賣出金額"] || "";
+    }
+    else if (type === 'stock_div') {
+        document.getElementById("inpStockDivQty").value = item.Stock_Div || item["配股數量"] || "";
+    }
+    else if (type === 'cash_div') {
+        document.getElementById("inpCashDivAmt").value = item.Cash_Div || item["配息金額"] || "";
+    }
+    else if (type === 'lending') {
+        document.getElementById("inpLendingAmt").value = item.lending_amount || item["借出收入"] || item["Lending Income"] || "";
+    }
+}
+
 function renderList(data) {
     const list = document.getElementById("transactionList");
     if (!list) return;
@@ -578,6 +808,8 @@ function renderList(data) {
 
         const card = document.createElement("div");
         card.className = "stock-card";
+        card.style.cursor = "pointer"; // Add pointer cursor
+        card.onclick = () => startEdit(item); // Add Edit Handler
 
         // Layout:
         // Left: Info
