@@ -2,7 +2,7 @@ console.log("App Version: v2.1 (Syntax Fix Verified)");
 
 // Configuration
 const GOOGLE_CLIENT_ID = "368914333961-lk0vd7iurbpbuut1dqmrrl7qvo0ctrah.apps.googleusercontent.com";
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz35UlwuNqIV2CwmMpO99PUrCoirgYlU2Gpyg8_th6gtgh7KqtEsC-GUvShx4qTGdo5mQ/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxze34OT_vEOIzIGd1RiZHAf7LRKUrJLLr_trSQJpiTdJucPWImAj8FzpnJo4Ab6lb92A/exec";
 
 // DOM Elements (fetched dynamically)
 
@@ -475,6 +475,7 @@ function renderList(data) {
         const sellAmt = item.Sell_Amt || item["賣出金額"];
         const stockDiv = item.Stock_Div || item["配股數量"];
         const cashDiv = item.Cash_Div || item["配息金額"];
+        const lendingAmt = item.lending_amount || item["借出收入"] || item["Lending Income"]; // Check multiple keys
         const dateRaw = item.Date || item["日期"];
         const currency = item.Currency || item["幣別"] || "TWD";
 
@@ -530,6 +531,32 @@ function renderList(data) {
             mainValue = fmt(cashDiv, currency);
 
             const twdVal = calcTWD(cashDiv, currency);
+            if (twdVal !== null) {
+                subValue = `TWD $ ${twdVal.toLocaleString()}`;
+            }
+        }
+        else if (lendingAmt) {
+            typeLabel = "借出收入";
+            typeClass = "type-div"; // Requests same style as divs
+            nameColor = "#EF4444"; // Assuming Red for income? User requested "Stock Name Color" to be Red for Buy, Green for Sell/Div?
+            // Wait, previous request (Obj 3 in summary): "red for 'Buy' transactions and green for 'Sell/Dividend'"
+            // But wait, the previous code snippet shows:
+            // Buy: #EF4444 (Red)
+            // Sell: #10B981 (Green)
+            // Stock Div: #EF4444 (Red) -> Wait, user said "green for Sell/Dividend" in Summary objective 3?
+            // Let's re-read the previous turn's code.
+            // In the snippet I viewed:
+            // buy: #EF4444 (Red)
+            // sell: #10B981 (Green)
+            // stockDiv: #EF4444 (Red) -> This contradicts "green for Sell/Dividend". 
+            // BUT, in "Previous Session Summary -> Features Modified -> Badge Style": "Further refining the color for '配息' (Cash Dividend) and '配股' (Stock Dividend) transactions to be red, aligning with the user's latest request."
+            // Ah, Obj 4 says: "Further refining... to be red". 
+            // So Red is correct for Divs.
+            // For Lending Income, usually it's Income, so likely Red.
+            // I'll stick with Red (#EF4444) for Lending Income + type-div style.
+
+            mainValue = fmt(lendingAmt, currency);
+            const twdVal = calcTWD(lendingAmt, currency);
             if (twdVal !== null) {
                 subValue = `TWD $ ${twdVal.toLocaleString()}`;
             }
