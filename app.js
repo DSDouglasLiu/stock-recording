@@ -390,6 +390,7 @@ function renderList(data) {
         let typeLabel = "未知";
         let typeClass = "type-buy";
         let mainValue = "";
+        let nameColor = "#1F2937"; // A standard dark grey default
 
         // Extract values using both English and Chinese keys
         const buyAmt = item.Buy_Amt || item["購買金額"];
@@ -401,25 +402,46 @@ function renderList(data) {
         if (buyAmt) {
             typeLabel = "買入";
             typeClass = "type-buy";
-            mainValue = "- $ " + Number(buyAmt).toLocaleString();
+            nameColor = "#EF4444"; // Red for Buy
+            mainValue = "$ " + Number(buyAmt).toLocaleString();
         }
         else if (sellAmt) {
             typeLabel = "賣出";
             typeClass = "type-sell";
-            mainValue = "+ $ " + Number(sellAmt).toLocaleString();
+            nameColor = "#10B981"; // Green for Sell
+            mainValue = "$ " + Number(sellAmt).toLocaleString();
         }
         else if (stockDiv) {
             typeLabel = "配股";
             typeClass = "type-sell";
-            mainValue = "+" + stockDiv + " 股";
+            nameColor = "#EF4444"; // Red (Requested)
+            mainValue = stockDiv + " 股";
         }
         else if (cashDiv) {
             typeLabel = "配息";
             typeClass = "type-sell";
-            mainValue = "+ $ " + Number(cashDiv).toLocaleString();
+            nameColor = "#EF4444"; // Red (Requested)
+            mainValue = "$ " + Number(cashDiv).toLocaleString();
         }
 
-        const dateStr = dateRaw ? dateRaw.toString().substring(0, 10) : "";
+        // Fix Date Timezone Issue: Parse properly
+        let dateStr = "";
+        if (dateRaw) {
+            const d = new Date(dateRaw);
+            // Use "sv-SE" locale to get YYYY-MM-DD format, which is stable
+            // Adding timezone offset logic if needed, but usually formatting a Date object in browser 
+            // uses local time. If the backend sent ISO string (UTC), and user is +8,
+            // 00:00 UTC -> 08:00 Local. So just printing local date is correct.
+            // However, commonly 'substring(0,10)' on ISO string gives previous day if you are ahead of UTC??? 
+            // No, ISO string IS UTC. 
+            // Wait, if Date is 2026-02-02 (midnight) in Sheet, GAS sends 2026-02-02T00:00:00.000Z usually IF script timezone is UTC.
+            // If script is +8, it sends +8 time. 
+            // Let's just trust the browser to format the date object to local string.
+            const year = d.getFullYear();
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const day = d.getDate().toString().padStart(2, '0');
+            dateStr = `${year}-${month}-${day}`;
+        }
 
         const broker = item.Broker || item["券商"] || "";
         const name = item.Name || item["股票名稱"] || item.Symbol || item["股票代號"] || "";
@@ -431,7 +453,7 @@ function renderList(data) {
             <div class="stock-info">
                 <div class="stock-symbol">
                     <span style="font-size:12px; color:#6B7280; margin-right:4px;">${broker}</span>
-                    ${name} 
+                    <span style="color:${nameColor}">${name}</span>
                     <span class="type-badge ${typeClass}">${typeLabel}</span>
                 </div>
                 <div class="stock-date">${dateStr} · ${owner}</div>
