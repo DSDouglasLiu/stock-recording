@@ -2,7 +2,7 @@ console.log("App Version: v2.1 (Syntax Fix Verified)");
 
 // Configuration
 const GOOGLE_CLIENT_ID = "368914333961-lk0vd7iurbpbuut1dqmrrl7qvo0ctrah.apps.googleusercontent.com";
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzns0v8JgR7yeg6xQ1VGJQKkl4ccfyCai1sQYPZh4loAS0R3j-y_povTB0rDjMISiP-eg/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxEJbhbIKrCKXRlCeX5qV1Hm32PENACQlHbE2j9n0gaS54g5koKcg6q67CAm0MkVTJFkw/exec";
 
 // DOM Elements (fetched dynamically)
 
@@ -391,32 +391,39 @@ function renderList(data) {
         let typeClass = "type-buy";
         let mainValue = "";
 
-        if (item.Buy_Amt) {
+        // Extract values using both English and Chinese keys
+        const buyAmt = item.Buy_Amt || item["購買金額"];
+        const sellAmt = item.Sell_Amt || item["賣出金額"];
+        const stockDiv = item.Stock_Div || item["配股數量"];
+        const cashDiv = item.Cash_Div || item["配息金額"];
+        const dateRaw = item.Date || item["日期"];
+
+        if (buyAmt) {
             typeLabel = "買入";
             typeClass = "type-buy";
-            mainValue = "- $ " + Number(item.Buy_Amt).toLocaleString();
+            mainValue = "- $ " + Number(buyAmt).toLocaleString();
         }
-        else if (item.Sell_Amt) {
+        else if (sellAmt) {
             typeLabel = "賣出";
             typeClass = "type-sell";
-            mainValue = "+ $ " + Number(item.Sell_Amt).toLocaleString();
+            mainValue = "+ $ " + Number(sellAmt).toLocaleString();
         }
-        else if (item.Stock_Div) {
+        else if (stockDiv) {
             typeLabel = "配股";
             typeClass = "type-sell";
-            mainValue = "+" + item.Stock_Div + " 股";
+            mainValue = "+" + stockDiv + " 股";
         }
-        else if (item.Cash_Div) {
+        else if (cashDiv) {
             typeLabel = "配息";
             typeClass = "type-sell";
-            mainValue = "+ $ " + Number(item.Cash_Div).toLocaleString();
+            mainValue = "+ $ " + Number(cashDiv).toLocaleString();
         }
 
-        const dateStr = item.Date ? item.Date.substring(0, 10) : "";
+        const dateStr = dateRaw ? dateRaw.toString().substring(0, 10) : "";
 
         const broker = item.Broker || item["券商"] || "";
         const name = item.Name || item["股票名稱"] || item.Symbol || item["股票代號"] || "";
-        const owner = item.Owner || item["Owner"] || ""; // Owner usually English but just in case
+        const owner = item.Owner || item["Owner"] || "";
 
         const card = document.createElement("div");
         card.className = "stock-card";
