@@ -43,9 +43,8 @@ function initializeEventListeners() {
 
     const tabRecent = document.getElementById("tabNavRecent");
     if (tabRecent) tabRecent.addEventListener("click", () => {
-        // If coming back to Dashboard (Recent), maybe reload? 
-        // For now just switch view.
         switchView("viewDashboard");
+        loadDashboard(); // Reload data from Sheet
     });
 
     const btnCancel = document.getElementById("btnCancel");
