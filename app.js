@@ -560,13 +560,18 @@ function startEdit(item) {
     toggleFormType();
 
     // Fill Specifics
+    // Fill Specifics
     if (type === 'buy') {
-        document.getElementById("inpBuyQty").value = item.Buy_Qty || item["買進股數 (股)"] || "";
-        document.getElementById("inpBuyAmt").value = item.Buy_Amt || item["購買金額"] || "";
+        const qty = item.Buy_Qty || item["買進股數 (股)"] || item["買進股數"] || item["Buy_Qty"] || "";
+        const amt = item.Buy_Amt || item["購買金額"] || item["Buy_Amt"] || "";
+        document.getElementById("inpBuyQty").value = qty;
+        document.getElementById("inpBuyAmt").value = amt;
     }
     else if (type === 'sell') {
-        document.getElementById("inpSellQty").value = item.Sell_Qty || item["賣出股數 (股)"] || "";
-        document.getElementById("inpSellAmt").value = item.Sell_Amt || item["賣出金額"] || "";
+        const qty = item.Sell_Qty || item["賣出股數 (股)"] || item["賣出股數"] || item["Sell_Qty"] || "";
+        const amt = item.Sell_Amt || item["賣出金額"] || item["Sell_Amt"] || "";
+        document.getElementById("inpSellQty").value = qty;
+        document.getElementById("inpSellAmt").value = amt;
     }
     else if (type === 'stock_div') {
         document.getElementById("inpStockDivQty").value = item.Stock_Div || item["配股數量"] || "";
@@ -599,6 +604,8 @@ function renderList(data) {
         let subValue = ""; // For TWD conversion
         let nameColor = "#1F2937";
 
+        let qtyValue = ""; // [NEW] Quantity display
+
         // Extract values
         const buyAmt = item.Buy_Amt || item["購買金額"];
         const sellAmt = item.Sell_Amt || item["賣出金額"];
@@ -630,6 +637,10 @@ function renderList(data) {
             nameColor = "#EF4444";
             mainValue = fmt(buyAmt, currency);
 
+            // Extract Qty
+            const qty = item.Buy_Qty || item["買進股數 (股)"] || item["買進股數"] || 0;
+            if (qty) qtyValue = `${Number(qty).toLocaleString()} 股`;
+
             const twdVal = calcTWD(buyAmt, currency);
             if (twdVal !== null) {
                 subValue = `TWD $ ${twdVal.toLocaleString()}`;
@@ -640,6 +651,10 @@ function renderList(data) {
             typeClass = "type-sell";
             nameColor = "#10B981";
             mainValue = fmt(sellAmt, currency);
+
+            // Extract Qty
+            const qty = item.Sell_Qty || item["賣出股數 (股)"] || item["賣出股數"] || 0;
+            if (qty) qtyValue = `${Number(qty).toLocaleString()} 股`;
 
             const twdVal = calcTWD(sellAmt, currency);
             if (twdVal !== null) {
@@ -723,6 +738,7 @@ function renderList(data) {
                 <div class="stock-date">${dateStr} · ${owner}</div>
             </div>
             <div class="stock-amount" style="display:flex; flex-direction:column; align-items:flex-end;">
+                ${qtyValue ? `<div style="font-size:13px; color:#4B5563; margin-bottom:2px;">${qtyValue}</div>` : ''}
                 <div>${mainValue}</div>
                 ${subValue ? `<div style="margin-top:2px;">${subValue}</div>` : ''}
             </div>
