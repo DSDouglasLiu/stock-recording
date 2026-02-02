@@ -187,11 +187,14 @@ function populateDatalists() {
 
     if (stocksData && stocksData.length > 0) {
         stocksData.forEach(item => {
-            const s = item.Symbol ? item.Symbol.toString().trim() : "";
-            const n = item.Name ? item.Name.toString().trim() : "";
+            // Support both English and Chinese headers
+            const s = (item.Symbol || item["股票代號"] || "").toString().trim();
+            const n = (item.Name || item["股票名稱"] || "").toString().trim();
+            const b = (item.Broker || item["券商"] || "").toString().trim();
+            const c = (item.Currency || item["幣別"] || "").toString().trim();
 
-            if (item.Broker) brokers.add(item.Broker);
-            if (item.Currency) currencies.add(item.Currency);
+            if (b) brokers.add(b);
+            if (c) currencies.add(c);
 
             if (s) symbols.add(s);
             if (n) names.add(n);
@@ -411,16 +414,20 @@ function renderList(data) {
 
         const dateStr = item.Date ? item.Date.substring(0, 10) : "";
 
+        const broker = item.Broker || item["券商"] || "";
+        const name = item.Name || item["股票名稱"] || item.Symbol || item["股票代號"] || "";
+        const owner = item.Owner || item["Owner"] || ""; // Owner usually English but just in case
+
         const card = document.createElement("div");
         card.className = "stock-card";
         card.innerHTML = `
             <div class="stock-info">
                 <div class="stock-symbol">
-                    <span style="font-size:12px; color:#6B7280; margin-right:4px;">${item.Broker || ""}</span>
-                    ${item.Name || item.Symbol} 
+                    <span style="font-size:12px; color:#6B7280; margin-right:4px;">${broker}</span>
+                    ${name} 
                     <span class="type-badge ${typeClass}">${typeLabel}</span>
                 </div>
-                <div class="stock-date">${dateStr} · ${item.Owner || ""}</div>
+                <div class="stock-date">${dateStr} · ${owner}</div>
             </div>
             <div class="stock-amount">${mainValue}</div>
         `;
