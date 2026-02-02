@@ -558,7 +558,7 @@ function renderList(data) {
             </div>
             <div class="stock-amount" style="display:flex; flex-direction:column; align-items:flex-end;">
                 <div>${mainValue}</div>
-                ${subValue ? `<div style="font-size:13px; margin-top:2px;">${subValue}</div>` : ''}
+                ${subValue ? `<div style="margin-top:2px;">${subValue}</div>` : ''}
             </div>
         `;
         list.appendChild(card);
