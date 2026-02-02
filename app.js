@@ -91,16 +91,18 @@ function hideModal() {
     }
 }
 
-function showLoading(text = "處理中...") {
-    const overlay = document.getElementById("loadingOverlay");
+function showLoading(msg = "處理中...") {
+    const el = document.getElementById("loadingOverlay");
     const txt = document.getElementById("loadingText");
-    if (txt) txt.textContent = text;
-    if (overlay) overlay.classList.add("active");
+    if (el) {
+        if (txt) txt.textContent = msg;
+        el.classList.add("active");
+    }
 }
 
 function hideLoading() {
-    const overlay = document.getElementById("loadingOverlay");
-    if (overlay) overlay.classList.remove("active");
+    const el = document.getElementById("loadingOverlay");
+    if (el) el.classList.remove("active");
 }
 
 // Call initialization function when DOM is ready
@@ -432,6 +434,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     rowIndex: editingRowIndex
                 });
 
+                hideLoading();
+
                 if (result.status === "success") {
                     showModal("成功", "刪除成功", () => {
                         loadDashboard();
@@ -441,9 +445,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     throw new Error(result.message);
                 }
             } catch (e) {
-                showModal("錯誤", "刪除失敗: " + e.message);
-            } finally {
                 hideLoading();
+                showModal("錯誤", "刪除失敗: " + e.message);
             }
         });
     });
@@ -498,7 +501,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Determine Action
             const action = editingRowIndex ? "updateStock" : "addStock";
-            const statusText = editingRowIndex ? "更新中..." : "儲存中...";
+            const loadingText = editingRowIndex ? "更新中..." : "儲存中...";
 
             const payload = {
                 action: action,
@@ -510,11 +513,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 stock_div, cash_div, lending_amount
             };
 
-            showLoading(statusText);
+            showLoading(loadingText);
             btnSave.disabled = true;
 
             try {
                 const result = await callGAS(payload);
+                hideLoading();
+
                 if (result.status === "success") {
                     showModal("成功", editingRowIndex ? "更新成功" : "儲存成功", () => {
                         loadDashboard();
@@ -524,11 +529,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     throw new Error(result.message);
                 }
             } catch (e) {
+                hideLoading();
                 showModal("錯誤", "失敗: " + e.message);
                 console.error(e);
             } finally {
-                hideLoading();
-                btnSave.textContent = editingRowIndex ? "更新" : "儲存";
                 btnSave.disabled = false;
             }
         });
