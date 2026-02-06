@@ -212,6 +212,22 @@ function updateFormPermissionState() {
 let stockMap = {}; // Symbol -> Name
 let nameMap = {};  // Name -> Symbol
 
+// Helper for fuzzy key lookup
+function findVal(item, candidates) {
+    if (!item) return "";
+    // 1. Direct match
+    for (let c of candidates) {
+        if (item[c] !== undefined) return item[c];
+    }
+    // 2. Case-insensitive / Trim check
+    const keys = Object.keys(item);
+    for (let c of candidates) {
+        const match = keys.find(k => k.trim().toLowerCase() === c.trim().toLowerCase());
+        if (match) return item[match];
+    }
+    return "";
+}
+
 function populateDatalists() {
     // Extract unique values
     const brokers = new Set(["台証", "元大", "國泰", "群益"]);
@@ -224,11 +240,11 @@ function populateDatalists() {
 
     if (stocksData && stocksData.length > 0) {
         stocksData.forEach(item => {
-            // Support both English and Chinese headers
-            const s = (item.Symbol || item["股票代號"] || "").toString().trim();
-            const n = (item.Name || item["股票名稱"] || "").toString().trim();
-            const b = (item.Broker || item["券商"] || "").toString().trim();
-            const c = (item.Currency || item["currency"] || item["幣別"] || "").toString().trim();
+            // Robust lookup
+            const s = (findVal(item, ["Symbol", "股票代號"]) || "").toString().trim();
+            const n = (findVal(item, ["Name", "股票名稱"]) || "").toString().trim();
+            const b = (findVal(item, ["Broker", "券商"]) || "").toString().trim();
+            const c = (findVal(item, ["Currency", "currency", "幣別"]) || "").toString().trim();
 
             if (b) brokers.add(b);
             if (c) currencies.add(c);
@@ -475,14 +491,14 @@ function renderList(data) {
         let nameColor = "#1F2937";
 
         // Extract values
-        const buyAmt = item.Buy_Amt || item["購買金額"];
-        const sellAmt = item.Sell_Amt || item["賣出金額"];
-        const stockDiv = item.Stock_Div || item["配股數量"];
-        const cashDiv = item.Cash_Div || item["配息金額"];
-        const lendingAmt = item.Lending_Amt || item["借出收入"] || item["Lending_Income"];
-
-        const dateRaw = item.Date || item["日期"];
-        const currency = item.Currency || item["currency"] || item["幣別"] || "TWD";
+        // Extract values using robust finder
+        const buyAmt = findVal(item, ["Buy_Amt", "購買金額"]);
+        const sellAmt = findVal(item, ["Sell_Amt", "賣出金額"]);
+        const stockDiv = findVal(item, ["Stock_Div", "配股數量"]);
+        const cashDiv = findVal(item, ["Cash_Div", "配息金額"]);
+        const lendingAmt = findVal(item, ["Lending_Amt", "借出收入", "Lending_Income"]);
+        const dateRaw = findVal(item, ["Date", "日期"]);
+        const currency = findVal(item, ["Currency", "currency", "幣別"]) || "TWD";
 
         // Helper to format currency
         const fmt = (val, curr) => `${curr} $ ${Number(val).toLocaleString()}`;
