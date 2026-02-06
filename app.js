@@ -370,8 +370,17 @@ function updateUIForLogin() {
         userAvatar.src = currentUser.picture;
     }
 
-    switchView("viewDashboard"); // Ensure FAB is shown
-    loadDashboard();
+    // switchView("viewDashboard"); // Ensure FAB is shown
+    // loadDashboard();
+
+    // Default to Add Form (User Request)
+    // We need to fetch data for checking duplicates (populateDatalists) and rendering recent list?
+    // Actually showAddForm() calls populateDatalists and logic.
+    // But we need stockData loaded for populateDatalists to work well?
+    // Let's load data first then show form.
+    loadDashboard().then(() => {
+        showAddForm();
+    });
 }
 
 // =========================================
