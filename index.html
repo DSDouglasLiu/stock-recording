@@ -13,6 +13,10 @@
             --card-bg: #FFFFFF;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -220,11 +224,16 @@
             </div>
         </div>
 
+        <!-- Main Tabs -->
+        <div class="main-tabs">
+            <div id="tabNavAdd" class="main-tab-item">新增紀錄</div>
+            <div id="tabNavRecent" class="main-tab-item active">近期紀錄</div>
+        </div>
 
+        <!-- Dashboard View -->
+        <div id="viewDashboard" class="page-view">
 
-        <!-- Recent Records View -->
-        <div id="viewDashboard" class="page-view hidden">
-            <!-- Summary Cards -->
+            <!-- List -->
             <div id="transactionList" class="transaction-list" style="padding-top: 16px;">
                 <!-- Items will be injected here -->
                 <div class="hint" style="text-align:center; padding: 40px; color: #9CA3AF;">請先登入以查看資料</div>
@@ -232,20 +241,7 @@
         </div>
 
         <!-- Form View (Hidden) -->
-        <div id="bottomNav"
-            style="position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid #E5E7EB; display:flex; padding-bottom:env(safe-area-inset-bottom); z-index:50;">
-            <div id="tabNavRecent" class="main-tab-item"
-                style="flex:1; text-align:center; padding:12px; cursor:pointer; color:#6B7280;">
-                <div style="font-size:20px;">📋</div>
-                <div style="font-size:12px;">近期</div>
-            </div>
-            <div id="tabNavAdd" class="main-tab-item active"
-                style="flex:1; text-align:center; padding:12px; cursor:pointer; color:#2563EB;">
-                <div style="font-size:20px;">➕</div>
-                <div style="font-size:12px;">新增</div>
-            </div>
-        </div>
-        <div id="viewForm" class="page-view" style="padding: 16px;">
+        <div id="viewForm" class="page-view hidden" style="padding: 16px;">
             <!-- Title Removed -->
 
             <!-- Type Tabs -->
@@ -254,154 +250,152 @@
                 <div style="font-weight:700; color:#EF4444; margin-top:16px;">權限不足</div>
             </div>
 
-        </div>
-
-        <div id="formContentContainer" class="hidden">
-            <div class="form-group-stack">
-                <!-- Row 1: Buy / Sell -->
-                <div
-                    style="background:white; padding:4px; border-radius:8px; display:flex; gap:4px; border:1px solid #E5E7EB; margin-bottom: 8px;">
-                    <label class="type-tab" id="tabBuy" style="flex:1;">
-                        <input type="radio" name="stockType" value="buy" checked onchange="toggleFormType()">
-                        <span>買入</span>
-                    </label>
-                    <label class="type-tab" id="tabSell" style="flex:1;">
-                        <input type="radio" name="stockType" value="sell" onchange="toggleFormType()">
-                        <span>賣出</span>
-                    </label>
-                </div>
-
-                <!-- Row 2: Cash / Stock / Lending -->
-                <div
-                    style="background:white; padding:4px; border-radius:8px; display:flex; gap:4px; border:1px solid #E5E7EB;">
-                    <label class="type-tab" id="tabCashDiv" style="flex:1;">
-                        <input type="radio" name="stockType" value="cash_div" onchange="toggleFormType()">
-                        <span>配息</span>
-                    </label>
-                    <label class="type-tab" id="tabStockDiv" style="flex:1;">
-                        <input type="radio" name="stockType" value="stock_div" onchange="toggleFormType()">
-                        <span>配股</span>
-                    </label>
-                    <label class="type-tab" id="tabLending" style="flex:1;">
-                        <input type="radio" name="stockType" value="lending" onchange="toggleFormType()">
-                        <span>借出</span>
-                    </label>
-                </div>
-
-                <!-- Common Fields -->
-                <!-- Date & Owner -->
-                <div style="display:flex; gap:12px;">
-                    <div style="flex:1">
-                        <label class="inp-label">日期</label>
-                        <input type="date" id="inpDate" class="inp-field">
+            <div id="formContentContainer">
+                <div class="form-group-stack">
+                    <!-- Row 1: Buy / Sell -->
+                    <div
+                        style="background:white; padding:4px; border-radius:8px; display:flex; gap:4px; border:1px solid #E5E7EB; margin-bottom: 8px;">
+                        <label class="type-tab" id="tabBuy" style="flex:1;">
+                            <input type="radio" name="stockType" value="buy" checked onchange="toggleFormType()">
+                            <span>買入</span>
+                        </label>
+                        <label class="type-tab" id="tabSell" style="flex:1;">
+                            <input type="radio" name="stockType" value="sell" onchange="toggleFormType()">
+                            <span>賣出</span>
+                        </label>
                     </div>
-                    <div style="width:80px;">
-                        <label class="inp-label">Owner</label>
-                        <select id="inpOwner" class="inp-field">
-                            <option value="J">J</option>
-                            <option value="D">D</option>
-                        </select>
+
+                    <!-- Row 2: Cash / Stock / Lending -->
+                    <div
+                        style="background:white; padding:4px; border-radius:8px; display:flex; gap:4px; border:1px solid #E5E7EB;">
+                        <label class="type-tab" id="tabCashDiv" style="flex:1;">
+                            <input type="radio" name="stockType" value="cash_div" onchange="toggleFormType()">
+                            <span>配息</span>
+                        </label>
+                        <label class="type-tab" id="tabStockDiv" style="flex:1;">
+                            <input type="radio" name="stockType" value="stock_div" onchange="toggleFormType()">
+                            <span>配股</span>
+                        </label>
+                        <label class="type-tab" id="tabLending" style="flex:1;">
+                            <input type="radio" name="stockType" value="lending" onchange="toggleFormType()">
+                            <span>借出</span>
+                        </label>
                     </div>
-                </div>
 
-                <!-- Broker -->
-                <div>
-                    <label class="inp-label">券商 (可輸入新值)</label>
-                    <input type="text" id="inpBroker" list="listBrokers" class="inp-field" placeholder="選擇或輸入券商">
-                    <datalist id="listBrokers"></datalist>
-                </div>
-
-                <!-- Symbol & Name -->
-                <div style="display:flex; gap:12px;">
-                    <div style="width:100px;">
-                        <label class="inp-label">代號</label>
-                        <input type="text" id="inpSymbol" list="listSymbols" class="inp-field" placeholder="代號">
-                        <datalist id="listSymbols"></datalist>
-                    </div>
-                    <div style="flex:1">
-                        <label class="inp-label">名稱</label>
-                        <input type="text" id="inpName" list="listNames" class="inp-field" placeholder="名稱">
-                        <datalist id="listNames"></datalist>
-                    </div>
-                </div>
-
-                <!-- Currency (Common) -->
-                <div id="divCurrency">
-                    <label class="inp-label">幣別</label>
-                    <input type="text" id="inpCurrencyInput" list="listCurrencies" class="inp-field" value="TWD">
-                    <datalist id="listCurrencies">
-                        <option value="TWD">
-                        <option value="USD">
-                        <option value="JPY">
-                    </datalist>
-                </div>
-
-                <!-- Dynamic Fields -->
-
-                <!-- Buy Specific -->
-                <div id="fieldsBuy" class="dynamic-group">
+                    <!-- Common Fields -->
+                    <!-- Date & Owner -->
                     <div style="display:flex; gap:12px;">
                         <div style="flex:1">
-                            <label class="inp-label">買進股數</label>
-                            <input type="number" id="inpBuyQty" class="inp-field" placeholder="0">
+                            <label class="inp-label">日期</label>
+                            <input type="date" id="inpDate" class="inp-field">
                         </div>
-                        <div style="flex:1.5">
-                            <label class="inp-label">購買金額</label>
-                            <input type="number" id="inpBuyAmt" class="inp-field" placeholder="0">
+                        <div style="width:80px;">
+                            <label class="inp-label">Owner</label>
+                            <select id="inpOwner" class="inp-field">
+                                <option value="J">J</option>
+                                <option value="D">D</option>
+                            </select>
                         </div>
                     </div>
-                </div>
 
-                <!-- Sell Specific -->
-                <div id="fieldsSell" class="dynamic-group hidden">
+                    <!-- Broker -->
+                    <div>
+                        <label class="inp-label">券商 (可輸入新值)</label>
+                        <input type="text" id="inpBroker" list="listBrokers" class="inp-field" placeholder="選擇或輸入券商">
+                        <datalist id="listBrokers"></datalist>
+                    </div>
+
+                    <!-- Symbol & Name -->
                     <div style="display:flex; gap:12px;">
+                        <div style="width:100px;">
+                            <label class="inp-label">代號</label>
+                            <input type="text" id="inpSymbol" list="listSymbols" class="inp-field" placeholder="代號">
+                            <datalist id="listSymbols"></datalist>
+                        </div>
                         <div style="flex:1">
-                            <label class="inp-label">賣出股數</label>
-                            <input type="number" id="inpSellQty" class="inp-field" placeholder="0">
-                        </div>
-                        <div style="flex:1.5">
-                            <label class="inp-label">賣出金額</label>
-                            <input type="number" id="inpSellAmt" class="inp-field" placeholder="0">
+                            <label class="inp-label">名稱</label>
+                            <input type="text" id="inpName" list="listNames" class="inp-field" placeholder="名稱">
+                            <datalist id="listNames"></datalist>
                         </div>
                     </div>
-                </div>
 
-                <!-- Stock Div Specific -->
-                <div id="fieldsStockDiv" class="dynamic-group hidden">
-                    <div>
-                        <label class="inp-label">配股數量</label>
-                        <input type="number" id="inpStockDivQty" class="inp-field" placeholder="0">
+                    <!-- Currency (Common) -->
+                    <div id="divCurrency">
+                        <label class="inp-label">幣別</label>
+                        <input type="text" id="inpCurrencyInput" list="listCurrencies" class="inp-field" value="TWD">
+                        <datalist id="listCurrencies">
+                            <option value="TWD">
+                            <option value="USD">
+                            <option value="JPY">
+                        </datalist>
+                    </div>
+
+                    <!-- Dynamic Fields -->
+
+                    <!-- Buy Specific -->
+                    <div id="fieldsBuy" class="dynamic-group">
+                        <div style="display:flex; gap:12px;">
+                            <div style="flex:1">
+                                <label class="inp-label">買進股數</label>
+                                <input type="number" id="inpBuyQty" class="inp-field" placeholder="0">
+                            </div>
+                            <div style="flex:1.5">
+                                <label class="inp-label">購買金額</label>
+                                <input type="number" id="inpBuyAmt" class="inp-field" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sell Specific -->
+                    <div id="fieldsSell" class="dynamic-group hidden">
+                        <div style="display:flex; gap:12px;">
+                            <div style="flex:1">
+                                <label class="inp-label">賣出股數</label>
+                                <input type="number" id="inpSellQty" class="inp-field" placeholder="0">
+                            </div>
+                            <div style="flex:1.5">
+                                <label class="inp-label">賣出金額</label>
+                                <input type="number" id="inpSellAmt" class="inp-field" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock Div Specific -->
+                    <div id="fieldsStockDiv" class="dynamic-group hidden">
+                        <div>
+                            <label class="inp-label">配股數量</label>
+                            <input type="number" id="inpStockDivQty" class="inp-field" placeholder="0">
+                        </div>
+                    </div>
+
+                    <!-- Cash Div Specific -->
+                    <div id="fieldsCashDiv" class="dynamic-group hidden">
+                        <div>
+                            <label class="inp-label">配息金額</label>
+                            <input type="number" id="inpCashDivAmt" class="inp-field" placeholder="0">
+                        </div>
+                    </div>
+
+                    <!-- Lending Specific -->
+                    <div id="fieldsLending" class="dynamic-group hidden">
+                        <div>
+                            <label class="inp-label">借出收入</label>
+                            <input type="number" id="inpLendingAmt" class="inp-field" placeholder="0">
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div style="display:flex; gap:12px; margin-top:20px; padding-bottom:40px;">
+                        <button id="btnReset"
+                            style="flex:1; padding:12px; border-radius:12px; border:1px solid #E5E7EB; background:white; font-weight:600; color:#4B5563;">重置資料</button>
+                        <button id="btnSave"
+                            style="flex:1; padding:12px; border-radius:12px; border:none; background:#2563EB; color:white; font-weight:600;">儲存</button>
                     </div>
                 </div>
 
-                <!-- Cash Div Specific -->
-                <div id="fieldsCashDiv" class="dynamic-group hidden">
-                    <div>
-                        <label class="inp-label">配息金額</label>
-                        <input type="number" id="inpCashDivAmt" class="inp-field" placeholder="0">
-                    </div>
-                </div>
 
-                <!-- Lending Specific -->
-                <div id="fieldsLending" class="dynamic-group hidden">
-                    <div>
-                        <label class="inp-label">借出收入</label>
-                        <input type="number" id="inpLendingAmt" class="inp-field" placeholder="0">
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div style="display:flex; gap:12px; margin-top:20px; padding-bottom:40px;">
-                    <button id="btnReset"
-                        style="flex:1; padding:12px; border-radius:12px; border:1px solid #E5E7EB; background:white; font-weight:600; color:#4B5563;">重置資料</button>
-                    <button id="btnSave"
-                        style="flex:1; padding:12px; border-radius:12px; border:none; background:#2563EB; color:white; font-weight:600;">儲存</button>
-                </div>
             </div>
-
-
         </div>
-    </div>
     </div>
 
     <script src="app.js"></script>
