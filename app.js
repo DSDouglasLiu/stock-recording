@@ -2,7 +2,7 @@ console.log("App Version: v2.1 (Syntax Fix Verified)");
 
 // Configuration
 const GOOGLE_CLIENT_ID = "368914333961-lk0vd7iurbpbuut1dqmrrl7qvo0ctrah.apps.googleusercontent.com";
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz0Rr9LRgeCGUAU36nXnnpOKoAW1yBFSMOZG2m1VdxvsLnw4bTAng5PhAHPoMQEnBqyGA/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwA03qkyECcKPd0YhlmFS1ZnH1eZF6LB6brFTWqXNi9tGfsuPOUfrj65_TS0bLjaNp6HA/exec";
 
 // DOM Elements (fetched dynamically)
 
@@ -71,6 +71,7 @@ function initializeEventListeners() {
             let sell_qty = "", sell_amount = "";
             let stock_div = "";
             let cash_div = "";
+            let lending_amt = "";
 
             if (type === 'buy') {
                 buy_qty = document.getElementById("inpBuyQty").value;
@@ -90,6 +91,10 @@ function initializeEventListeners() {
                 cash_div = document.getElementById("inpCashDivAmt").value;
                 if (!cash_div) { alert("請輸入配息金額"); return; }
             }
+            if (type === 'lending') {
+                lending_amt = document.getElementById("inpLendingAmt").value;
+                if (!lending_amt) { alert("請輸入借出收入"); return; }
+            }
 
             if (!symbol || !date || !broker) {
                 alert("請填寫基本資料 (日期、券商、代號)");
@@ -102,7 +107,9 @@ function initializeEventListeners() {
                 date, owner, broker, symbol, name, currency,
                 buy_qty, buy_amount,
                 sell_qty, sell_amount,
-                stock_div, cash_div
+                sell_qty, sell_amount,
+                stock_div, cash_div,
+                lending_amt
             };
 
             btnSave.textContent = "儲存中...";
@@ -153,7 +160,7 @@ function showAddForm() {
     if (elOwner) elOwner.value = "J";
 
     // Clear Text Inputs
-    ["inpBroker", "inpSymbol", "inpName", "inpBuyQty", "inpBuyAmt", "inpSellQty", "inpSellAmt", "inpStockDivQty", "inpCashDivAmt"].forEach(id => {
+    ["inpBroker", "inpSymbol", "inpName", "inpBuyQty", "inpBuyAmt", "inpSellQty", "inpSellAmt", "inpStockDivQty", "inpCashDivAmt", "inpLendingAmt"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = "";
     });
@@ -300,6 +307,10 @@ window.toggleFormType = function () {
     }
     if (type === 'cash_div') {
         const f = document.getElementById("fieldsCashDiv");
+        if (f) f.classList.remove("hidden");
+    }
+    if (type === 'lending') {
+        const f = document.getElementById("fieldsLending");
         if (f) f.classList.remove("hidden");
     }
 }
