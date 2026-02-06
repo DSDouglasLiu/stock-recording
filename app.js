@@ -52,6 +52,9 @@ function initializeEventListeners() {
     const btnCancel = document.getElementById("btnCancel");
     if (btnCancel) btnCancel.addEventListener("click", () => switchView("viewDashboard"));
 
+    const btnReset = document.getElementById("btnReset");
+    if (btnReset) btnReset.addEventListener("click", resetFormFields);
+
     const btnSave = document.getElementById("btnSave");
     if (btnSave && !btnSave.hasAttribute("data-bound")) {
         btnSave.setAttribute("data-bound", "true");
@@ -180,6 +183,17 @@ function showAddForm() {
 
     updateFormPermissionState(); // Check permission
     switchView("viewForm");
+}
+
+function resetFormFields() {
+    // Clear Text Inputs Only (Keep Date, Owner, Type)
+    ["inpBroker", "inpSymbol", "inpName", "inpBuyQty", "inpBuyAmt", "inpSellQty", "inpSellAmt", "inpStockDivQty", "inpCashDivAmt", "inpLendingAmt"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+    });
+    // Defaults
+    const elCurr = document.getElementById("inpCurrencyInput");
+    if (elCurr) elCurr.value = "TWD";
 }
 
 function updateFormPermissionState() {
