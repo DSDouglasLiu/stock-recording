@@ -248,23 +248,33 @@
 
             <div id="formContentContainer">
                 <div class="form-group-stack">
+                    <!-- Row 1: Buy / Sell -->
                     <div
-                        style="background:white; padding:4px; border-radius:8px; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:4px; border:1px solid #E5E7EB;">
-                        <label class="type-tab" id="tabBuy">
+                        style="background:white; padding:4px; border-radius:8px; display:flex; gap:4px; border:1px solid #E5E7EB; margin-bottom: 8px;">
+                        <label class="type-tab" id="tabBuy" style="flex:1;">
                             <input type="radio" name="stockType" value="buy" checked onchange="toggleFormType()">
                             <span>買入</span>
                         </label>
-                        <label class="type-tab" id="tabSell">
+                        <label class="type-tab" id="tabSell" style="flex:1;">
                             <input type="radio" name="stockType" value="sell" onchange="toggleFormType()">
                             <span>賣出</span>
                         </label>
-                        <label class="type-tab" id="tabStockDiv">
+                    </div>
+
+                    <!-- Row 2: Cash / Stock / Lending -->
+                    <div
+                        style="background:white; padding:4px; border-radius:8px; display:flex; gap:4px; border:1px solid #E5E7EB;">
+                        <label class="type-tab" id="tabCashDiv" style="flex:1;">
+                            <input type="radio" name="stockType" value="cash_div" onchange="toggleFormType()">
+                            <span>配息</span>
+                        </label>
+                        <label class="type-tab" id="tabStockDiv" style="flex:1;">
                             <input type="radio" name="stockType" value="stock_div" onchange="toggleFormType()">
                             <span>配股</span>
                         </label>
-                        <label class="type-tab" id="tabCashDiv">
-                            <input type="radio" name="stockType" value="cash_div" onchange="toggleFormType()">
-                            <span>配息</span>
+                        <label class="type-tab" id="tabLending" style="flex:1;">
+                            <input type="radio" name="stockType" value="lending" onchange="toggleFormType()">
+                            <span>借出</span>
                         </label>
                     </div>
 
@@ -374,6 +384,8 @@
                     <div style="display:flex; gap:12px; margin-top:20px; padding-bottom:40px;">
                         <button id="btnCancel"
                             style="flex:1; padding:12px; border-radius:12px; border:1px solid #E5E7EB; background:white; font-weight:600;">取消</button>
+                        <button id="btnReset"
+                            style="flex:1; padding:12px; border-radius:12px; border:1px solid #E5E7EB; background:white; font-weight:600; color:#4B5563;">重置</button>
                         <button id="btnSave"
                             style="flex:1; padding:12px; border-radius:12px; border:none; background:#2563EB; color:white; font-weight:600;">儲存</button>
                     </div>
