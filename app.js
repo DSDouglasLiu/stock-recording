@@ -49,8 +49,7 @@ function initializeEventListeners() {
         switchView("viewDashboard");
     });
 
-    const btnCancel = document.getElementById("btnCancel");
-    if (btnCancel) btnCancel.addEventListener("click", () => switchView("viewDashboard"));
+
 
     const btnReset = document.getElementById("btnReset");
     if (btnReset) btnReset.addEventListener("click", resetFormFields);
