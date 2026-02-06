@@ -555,7 +555,7 @@ function renderList(data) {
             mainValue = fmt(cashDiv, currency);
             if (currency !== "TWD") {
                 const twdVal = calcTWD(cashDiv, currency);
-                if (twdVal) subValue = `≈ TWD $ ${twdVal.toLocaleString()}`;
+                if (twdVal) subValue = `TWD $ ${twdVal.toLocaleString()}`;
             }
         } else if (lendingAmt && Number(lendingAmt) > 0) {
             typeLabel = "借出收入";
@@ -564,7 +564,7 @@ function renderList(data) {
             mainValue = fmt(lendingAmt, currency);
             if (currency !== "TWD") {
                 const twdVal = calcTWD(lendingAmt, currency);
-                if (twdVal) subValue = `≈ TWD $ ${twdVal.toLocaleString()}`;
+                if (twdVal) subValue = `TWD $ ${twdVal.toLocaleString()}`;
             }
         } else {
             // Default / Fallback
