@@ -228,7 +228,7 @@ function populateDatalists() {
             const s = (item.Symbol || item["股票代號"] || "").toString().trim();
             const n = (item.Name || item["股票名稱"] || "").toString().trim();
             const b = (item.Broker || item["券商"] || "").toString().trim();
-            const c = (item.Currency || item["幣別"] || "").toString().trim();
+            const c = (item.Currency || item["currency"] || item["幣別"] || "").toString().trim();
 
             if (b) brokers.add(b);
             if (c) currencies.add(c);
@@ -479,8 +479,10 @@ function renderList(data) {
         const sellAmt = item.Sell_Amt || item["賣出金額"];
         const stockDiv = item.Stock_Div || item["配股數量"];
         const cashDiv = item.Cash_Div || item["配息金額"];
+        const lendingAmt = item.Lending_Amt || item["借出收入"] || item["Lending_Income"];
+
         const dateRaw = item.Date || item["日期"];
-        const currency = item.Currency || item["幣別"] || "TWD";
+        const currency = item.Currency || item["currency"] || item["幣別"] || "TWD";
 
         // Helper to format currency
         const fmt = (val, curr) => `${curr} $ ${Number(val).toLocaleString()}`;
@@ -529,16 +531,29 @@ function renderList(data) {
         }
         else if (cashDiv) {
             typeLabel = "配息";
-            typeClass = "type-div";
+            typeClass = "type-div"; // Reuse styling or new one
+            // Special styling for DIV?
+            // Reuse type-buy but maybe text-gray-800?
+            // "配息" badge style
             nameColor = "#EF4444";
             mainValue = fmt(cashDiv, currency);
-
-            const twdVal = calcTWD(cashDiv, currency);
-            if (twdVal !== null) {
-                subValue = `TWD $ ${twdVal.toLocaleString()}`;
+            if (currency !== "TWD") {
+                const twdVal = calcTWD(cashDiv, currency);
+                if (twdVal) subValue = `≈ TWD $ ${twdVal.toLocaleString()}`;
             }
+        } else if (lendingAmt && Number(lendingAmt) > 0) {
+            typeLabel = "借出收入";
+            typeClass = "type-div"; // Same style as Div
+            nameColor = "#EF4444"; // Assuming same color as other income types
+            mainValue = fmt(lendingAmt, currency);
+            if (currency !== "TWD") {
+                const twdVal = calcTWD(lendingAmt, currency);
+                if (twdVal) subValue = `≈ TWD $ ${twdVal.toLocaleString()}`;
+            }
+        } else {
+            // Default / Fallback
+            // Check if Buy/Sell was 0?
         }
-
         // Date Logic
         let dateStr = "";
         if (dateRaw) {
