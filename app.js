@@ -8,6 +8,8 @@ const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz0Rr9LRgeCGUAU36nX
 
 // State
 let currentUser = null;
+
+let isUserAuthorized = false; // New State
 let stocksData = [];
 
 // =========================================
@@ -168,7 +170,22 @@ function showAddForm() {
     }
 
     populateDatalists();
+
+    updateFormPermissionState(); // Check permission
     switchView("viewForm");
+}
+
+function updateFormPermissionState() {
+    const deniedEl = document.getElementById("formPermissionDenied");
+    const contentEl = document.getElementById("formContentContainer");
+
+    if (isUserAuthorized) {
+        if (deniedEl) deniedEl.classList.add("hidden");
+        if (contentEl) contentEl.classList.remove("hidden");
+    } else {
+        if (deniedEl) deniedEl.classList.remove("hidden");
+        if (contentEl) contentEl.classList.add("hidden");
+    }
 }
 
 // Map for Auto-fill
@@ -378,6 +395,7 @@ async function loadDashboard() {
 
         if (result.status === "success") {
             stocksData = result.data;
+            isUserAuthorized = true; // Authorized
             renderList(stocksData);
         } else {
             throw new Error(result.message || "Unknown error");
@@ -396,6 +414,7 @@ async function loadDashboard() {
             `;
             const cardTitle = document.querySelector("#viewDashboard div[style*='background'] div[style*='font-size: 32px']");
             if (cardTitle) cardTitle.textContent = "$ -";
+            isUserAuthorized = false; // Unauthorized
         } else {
             list.innerHTML = `<div class="hint" style="text-align:center; padding: 20px; color:red;">載入失敗: ${e.message}</div>`;
         }
