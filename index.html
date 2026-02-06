@@ -238,7 +238,7 @@
 
         <!-- Form View (Hidden) -->
         <div id="viewForm" class="page-view hidden" style="padding: 16px;">
-            <div style="font-size: 20px; font-weight: 700; margin-bottom: 20px;">新增紀錄</div>
+            <!-- Title Removed -->
 
             <!-- Type Tabs -->
             <div id="formPermissionDenied" class="hidden" style="text-align:center; padding: 40px;">
@@ -362,6 +362,14 @@
                         </div>
                     </div>
 
+                    <!-- Lending Specific -->
+                    <div id="fieldsLending" class="dynamic-group hidden">
+                        <div>
+                            <label class="inp-label">借出收入</label>
+                            <input type="number" id="inpLendingAmt" class="inp-field" placeholder="0">
+                        </div>
+                    </div>
+
                     <!-- Actions -->
                     <div style="display:flex; gap:12px; margin-top:20px; padding-bottom:40px;">
                         <button id="btnCancel"
@@ -370,6 +378,8 @@
                             style="flex:1; padding:12px; border-radius:12px; border:none; background:#2563EB; color:white; font-weight:600;">儲存</button>
                     </div>
                 </div>
+
+
             </div>
         </div>
     </div>
