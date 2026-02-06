@@ -259,6 +259,11 @@ function populateDatalists() {
         });
     }
 
+    // Ensure defaults are present
+    currencies.add("TWD");
+    currencies.add("USD");
+    currencies.add("JPY");
+
     fillDatalist("listBrokers", brokers);
     fillDatalist("listSymbols", symbols);
     fillDatalist("listNames", names);
@@ -599,9 +604,9 @@ function renderList(data) {
                 </div>
                 <div class="stock-date">${dateStr} · ${owner}</div>
             </div>
-            <div class="stock-amount" style="display:flex; flex-direction:column; align-items:flex-end;">
+            <div class="stock-amount" style="display:flex; flex-direction:column; align-items:flex-end; font-weight:700; font-size:15px; color:#1F2937;">
                 <div>${mainValue}</div>
-                ${subValue ? `<div style="font-size:13px; margin-top:2px;">${subValue}</div>` : ''}
+                ${subValue ? `<div style="margin-top:2px;">${subValue}</div>` : ''}
             </div>
         `;
         list.appendChild(card);
